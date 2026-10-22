@@ -13,6 +13,10 @@
   
   <!-- 구글 및 포털 검색엔진 메타 태그 -->
   <meta name="google-site-verification" content="swvKD7BjLgBfdYGj-hGNLBjwwCneap2egNqkbtvlJlw" />
+  
+  <!-- 구글 애드센스 (Google AdSense) 코드 -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1573419461895141" crossorigin="anonymous"></script>
+
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://jake12733.github.io/" />
   <meta property="og:title" content="TaxOne 전자세금계산서 시스템" />
@@ -98,41 +102,59 @@
       },
       {
         id: 'inv-2',
-        manageNumber: '20261020-41000002-39104812',
-        type: 'general',
-        kind: 'purchase',
-        writeDate: '2026-10-20',
-        supplier: INITIAL_COUNTERPARTIES[1],
-        buyer: DEFAULT_COMPANY,
-        items: [
-          { id: 'item-3', date: '10-20', name: '클라우드 인프라 호스팅 (VPC 및 Kubernetes 클러스터)', spec: '월간', qty: 1, unitPrice: 3200000, supplyAmount: 3200000, taxAmount: 320000, remark: '10월 이용료' }
-        ],
-        totalSupplyAmount: 3200000,
-        totalTaxAmount: 320000,
-        grandTotal: 3520000,
-        cash: 3520000, check: 0, promissoryNote: 0, receivable: 0,
-        purpose: 'receipt',
-        status: 'received',
-        hometaxSentAt: '2026-10-20 09:12:04',
-        hometaxApprovalNo: '202610204100000239104812'
-      },
-      {
-        id: 'inv-3',
-        manageNumber: '20261019-41000003-51829013',
+        manageNumber: '20261018-41000001-49201948',
         type: 'general',
         kind: 'sales',
-        writeDate: '2026-10-19',
+        writeDate: '2026-10-18',
         supplier: DEFAULT_COMPANY,
-        buyer: INITIAL_COUNTERPARTIES[3],
+        buyer: INITIAL_COUNTERPARTIES[1],
         items: [
-          { id: 'item-4', date: '10-19', name: '전자세금계산서 API 모듈 연동 라이선스', spec: 'Enterprise', qty: 1, unitPrice: 8500000, supplyAmount: 8500000, taxAmount: 850000, remark: '1년 라이선스' }
+          { id: 'item-3', date: '10-18', name: '엔터프라이즈 AI 모니터링 엔진 라이선스 (연간)', spec: 'Standard', qty: 1, unitPrice: 8500000, supplyAmount: 8500000, taxAmount: 850000, remark: '연간 구독' }
         ],
         totalSupplyAmount: 8500000,
         totalTaxAmount: 850000,
         grandTotal: 9350000,
         cash: 9350000, check: 0, promissoryNote: 0, receivable: 0,
         purpose: 'receipt',
-        status: 'draft'
+        status: 'issued',
+      },
+      {
+        id: 'inv-3',
+        manageNumber: '20261015-41000001-11928475',
+        type: 'general',
+        kind: 'sales',
+        writeDate: '2026-10-15',
+        supplier: DEFAULT_COMPANY,
+        buyer: INITIAL_COUNTERPARTIES[2],
+        items: [
+          { id: 'item-4', date: '10-15', name: '커넥티드 카 데이터 수집 백엔드 개발 용역', spec: '2차 마일스톤', qty: 1, unitPrice: 28000000, supplyAmount: 28000000, taxAmount: 2800000, remark: '검수확인서 첨부' }
+        ],
+        totalSupplyAmount: 28000000,
+        totalTaxAmount: 2800000,
+        grandTotal: 30800000,
+        cash: 0, check: 0, promissoryNote: 0, receivable: 30800000,
+        purpose: 'claim',
+        status: 'hometax_sent',
+        hometaxSentAt: '2026-10-15 17:05:40',
+        hometaxApprovalNo: '202610154100000111928475'
+      },
+      {
+        id: 'inv-4',
+        manageNumber: '20261010-41000001-57201940',
+        type: 'general',
+        kind: 'purchase',
+        writeDate: '2026-10-10',
+        supplier: INITIAL_COUNTERPARTIES[3],
+        buyer: DEFAULT_COMPANY,
+        items: [
+          { id: 'item-5', date: '10-10', name: '고객 관리자 포털 반응형 UI 컴포넌트 디자인 외주', spec: '건', qty: 1, unitPrice: 4200000, supplyAmount: 4200000, taxAmount: 420000, remark: '최종 납품분' }
+        ],
+        totalSupplyAmount: 4200000,
+        totalTaxAmount: 420000,
+        grandTotal: 4620000,
+        cash: 4620000, check: 0, promissoryNote: 0, receivable: 0,
+        purpose: 'receipt',
+        status: 'issued',
       }
     ];
 
@@ -147,21 +169,12 @@
         }
       });
 
-      const [company, setCompany] = useState(() => {
+      const [myCompany, setMyCompany] = useState(() => {
         try {
-          const saved = localStorage.getItem('taxone_company_profile');
+          const saved = localStorage.getItem('taxone_my_company');
           return saved ? JSON.parse(saved) : DEFAULT_COMPANY;
         } catch (e) {
           return DEFAULT_COMPANY;
-        }
-      });
-
-      const [invoices, setInvoices] = useState(() => {
-        try {
-          const saved = localStorage.getItem('taxone_invoices');
-          return saved ? JSON.parse(saved) : INITIAL_INVOICES;
-        } catch (e) {
-          return INITIAL_INVOICES;
         }
       });
 
@@ -174,824 +187,718 @@
         }
       });
 
+      const [invoices, setInvoices] = useState(() => {
+        try {
+          if (!currentUser) return [];
+          const userKey = `taxone_invoices_${currentUser.id || currentUser.email}`;
+          const saved = localStorage.getItem(userKey);
+          return saved ? JSON.parse(saved) : INITIAL_INVOICES;
+        } catch (e) {
+          return [];
+        }
+      });
+
       const [activeTab, setActiveTab] = useState('dashboard');
       const [filterKind, setFilterKind] = useState('all');
-      const [filterStatus, setFilterStatus] = useState('all');
       const [searchQuery, setSearchQuery] = useState('');
-      
-      const [selectedInvoice, setSelectedInvoice] = useState(null);
-      const [isWriting, setIsWriting] = useState(false);
-      const [writeKind, setWriteKind] = useState('sales');
-      const [showProfileModal, setShowProfileModal] = useState(false);
-      const [showLoginModal, setShowLoginModal] = useState(false);
-      const [loginMode, setLoginMode] = useState('login'); // 'login' | 'signup'
+      const [viewingInvoice, setViewingInvoice] = useState(null);
+      const [isFormOpen, setIsFormOpen] = useState(false);
+      const [formInitialKind, setFormInitialKind] = useState('sales');
+      const [signingInvoice, setSigningInvoice] = useState(null);
+      const [authModalOpen, setAuthModalOpen] = useState(false);
+      const [authMode, setAuthMode] = useState('login');
+      const [toast, setToast] = useState(null);
+      const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+      const dropdownRef = useRef(null);
 
-      // 로그인/회원가입 입력 상태
-      const [authEmail, setAuthEmail] = useState('');
-      const [authPassword, setAuthPassword] = useState('');
-      const [authName, setAuthName] = useState('');
-      const [authCompany, setAuthCompany] = useState('');
-      const [authBizNumber, setAuthBizNumber] = useState('');
-
+      // 인증 상태 로컬 스토리지 동기화
       useEffect(() => {
         if (currentUser) {
           localStorage.setItem('taxone_current_user', JSON.stringify(currentUser));
+          const userKey = `taxone_invoices_${currentUser.id || currentUser.email}`;
+          const saved = localStorage.getItem(userKey);
+          if (saved) {
+            try { setInvoices(JSON.parse(saved)); } catch (e) { setInvoices([]); }
+          } else {
+            setInvoices(INITIAL_INVOICES);
+          }
         } else {
           localStorage.removeItem('taxone_current_user');
+          setInvoices([]);
         }
       }, [currentUser]);
 
+      // 사업자 정보 저장
       useEffect(() => {
-        localStorage.setItem('taxone_company_profile', JSON.stringify(company));
-      }, [company]);
+        localStorage.setItem('taxone_my_company', JSON.stringify(myCompany));
+      }, [myCompany]);
 
+      // 세금계산서 목록 저장
       useEffect(() => {
-        localStorage.setItem('taxone_invoices', JSON.stringify(invoices));
-      }, [invoices]);
-
-      // 로그인 처리
-      const handleLogin = (e) => {
-        e?.preventDefault();
-        if (!authEmail.trim()) {
-          alert('이메일(아이디)을 입력해주세요.');
-          return;
+        if (currentUser) {
+          const userKey = `taxone_invoices_${currentUser.id || currentUser.email}`;
+          localStorage.setItem(userKey, JSON.stringify(invoices));
         }
-        const user = {
-          id: 'user_' + Date.now(),
-          name: authName.trim() || authEmail.split('@')[0],
-          email: authEmail.trim(),
-          companyName: authCompany.trim() || '미등록 사업자',
-          bizNumber: authBizNumber.trim() || ''
+      }, [invoices, currentUser]);
+
+      // 드롭다운 외부 클릭 감지
+      useEffect(() => {
+        const handleClickOutside = (e) => {
+          if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+            setProfileMenuOpen(false);
+          }
         };
-        setCurrentUser(user);
-        if (user.companyName !== '미등록 사업자' || user.bizNumber) {
-          setCompany(prev => ({
-            ...prev,
-            companyName: user.companyName,
-            bizNumber: user.bizNumber,
-            ceoName: user.name,
-            email: user.email
-          }));
-        }
-        setShowLoginModal(false);
-        setAuthEmail('');
-        setAuthPassword('');
-        setAuthName('');
-        setAuthCompany('');
-        setAuthBizNumber('');
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+      }, []);
+
+      const showToast = (msg) => {
+        setToast(msg);
+        setTimeout(() => setToast(null), 3000);
       };
 
-      // 로그아웃 처리 (완전 초기화)
+      // 로그아웃 핸들러
       const handleLogout = () => {
-        if (confirm('로그아웃 하시겠습니까?')) {
-          setCurrentUser(null);
-          localStorage.removeItem('taxone_current_user');
-          setSelectedInvoice(null);
-          setIsWriting(false);
-          setShowProfileModal(false);
-        }
+        setCurrentUser(null);
+        setProfileMenuOpen(false);
+        showToast('정상적으로 로그아웃되었습니다.');
       };
 
-      // 2. 로그인된 본인의 세금계산서만 필터링
-      const myInvoices = currentUser ? invoices : [];
+      // 로그인 핸들러
+      const handleLoginSuccess = (userData) => {
+        setCurrentUser(userData);
+        setAuthModalOpen(false);
+        showToast(`${userData.name}님 환영합니다!`);
+      };
 
-      const filteredInvoices = myInvoices.filter(inv => {
+      const salesInvoices = invoices.filter(i => i.kind === 'sales');
+      const totalSalesSupply = salesInvoices.reduce((s, i) => s + i.totalSupplyAmount, 0);
+      const totalSalesTax = salesInvoices.reduce((s, i) => s + i.totalTaxAmount, 0);
+      const totalSalesGrand = totalSalesSupply + totalSalesTax;
+
+      const purchaseInvoices = invoices.filter(i => i.kind === 'purchase');
+      const totalPurchaseSupply = purchaseInvoices.reduce((s, i) => s + i.totalSupplyAmount, 0);
+      const totalPurchaseTax = purchaseInvoices.reduce((s, i) => s + i.totalTaxAmount, 0);
+      const totalPurchaseGrand = totalPurchaseSupply + totalPurchaseTax;
+
+      const estimatedVatPayable = totalSalesTax - totalPurchaseTax;
+
+      const sentCount = invoices.filter(i => i.status === 'hometax_sent').length;
+      const unsentCount = invoices.filter(i => i.status === 'issued').length;
+      const draftCount = invoices.filter(i => i.status === 'draft').length;
+
+      const handleCreateInvoice = (kind = 'sales') => {
+        setFormInitialKind(kind);
+        setIsFormOpen(true);
+      };
+
+      const handleSaveInvoice = (newInv) => {
+        setInvoices(prev => [newInv, ...prev]);
+        setIsFormOpen(false);
+        showToast('세금계산서가 성공적으로 등록되었습니다.');
+      };
+
+      const handleSendHometax = (invoiceId) => {
+        const target = invoices.find(i => i.id === invoiceId);
+        if (target) setSigningInvoice(target);
+      };
+
+      const handleCompleteSign = () => {
+        if (!signingInvoice) return;
+        setInvoices(prev => prev.map(inv => {
+          if (inv.id === signingInvoice.id) {
+            return {
+              ...inv,
+              status: 'hometax_sent',
+              hometaxSentAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
+              hometaxApprovalNo: `2026102241${Date.now().toString().slice(-8)}`
+            };
+          }
+          return inv;
+        }));
+        setSigningInvoice(null);
+        showToast('공인인증서 전자서명이 완료되어 국세청으로 즉시 전송되었습니다.');
+      };
+
+      const filteredInvoices = invoices.filter(inv => {
         if (filterKind !== 'all' && inv.kind !== filterKind) return false;
-        if (filterStatus !== 'all' && inv.status !== filterStatus) return false;
-        if (searchQuery) {
+        if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase();
           const target = inv.kind === 'sales' ? inv.buyer : inv.supplier;
-          return (
-            (target?.companyName || '').toLowerCase().includes(q) ||
-            (target?.bizNumber || '').includes(q) ||
-            inv.items.some(it => (it.name || '').toLowerCase().includes(q))
-          );
+          const matchCompany = target.companyName?.toLowerCase().includes(q);
+          const matchBizNo = target.bizNumber?.includes(q);
+          const matchItem = inv.items.some(it => it.name.toLowerCase().includes(q));
+          return matchCompany || matchBizNo || matchItem;
         }
         return true;
       });
 
-      const totalSales = myInvoices.filter(i => i.kind === 'sales').reduce((sum, i) => sum + i.grandTotal, 0);
-      const totalPurchase = myInvoices.filter(i => i.kind === 'purchase').reduce((sum, i) => sum + i.grandTotal, 0);
-      const pendingCount = myInvoices.filter(i => i.status === 'draft').length;
+      const companyLogoText = myCompany.companyName ? myCompany.companyName.slice(0, 2) : '사업';
 
       return (
-        <div className="flex flex-col min-h-screen">
-          {/* 상단 네비게이션 헤더 */}
-          <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-2xs">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-2 cursor-pointer" onClick={() => { setActiveTab('dashboard'); setIsWriting(false); setSelectedInvoice(null); }}>
-                  <div className="w-9 h-9 bg-gradient-to-tr from-blue-700 to-indigo-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-xs">
+        <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans antialiased selection:bg-slate-900 selection:text-white">
+          
+          {/* 1. 상단 글로벌 헤더 */}
+          <header className="sticky top-0 z-30 bg-white border-b border-slate-200 shadow-2xs">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center justify-between h-16 gap-4">
+                
+                {/* 좌측 로고 및 브랜드 */}
+                <div className="flex items-center gap-3 cursor-pointer shrink-0" onClick={() => { setActiveTab('dashboard'); setIsFormOpen(false); }}>
+                  <div className="w-9 h-9 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-base shadow-xs">
                     T
                   </div>
                   <div>
-                    <span className="text-xl font-black tracking-tight text-slate-900">Tax<span className="text-blue-600">One</span></span>
-                    <span className="text-[10px] font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded ml-1.5 border border-blue-200">표준서식</span>
+                    <span className="font-extrabold text-lg tracking-tight text-slate-900">TaxOne</span>
+                    <span className="text-[11px] font-semibold text-slate-400 ml-1.5 hidden sm:inline-block">전자세금계산서</span>
                   </div>
                 </div>
 
-                <nav className="hidden md:flex items-center gap-1">
-                  <button 
-                    onClick={() => { setActiveTab('dashboard'); setIsWriting(false); setSelectedInvoice(null); }}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${activeTab === 'dashboard' && !isWriting ? 'bg-slate-100 text-blue-700' : 'text-slate-600 hover:text-slate-900'}`}
+                {/* 중앙 탭 메뉴 */}
+                <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
+                  <button
+                    onClick={() => { setActiveTab('dashboard'); setIsFormOpen(false); }}
+                    className={`hover:text-slate-900 transition-colors whitespace-nowrap py-1 cursor-pointer ${
+                      activeTab === 'dashboard' && !isFormOpen ? 'text-slate-900 font-bold border-b-2 border-slate-900' : ''
+                    }`}
                   >
-                    대시보드
+                    종합 대시보드
                   </button>
-                  <button 
-                    onClick={() => { setActiveTab('invoices'); setFilterKind('sales'); setIsWriting(false); setSelectedInvoice(null); }}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${activeTab === 'invoices' && filterKind === 'sales' && !isWriting ? 'bg-slate-100 text-blue-700' : 'text-slate-600 hover:text-slate-900'}`}
+                  <button
+                    onClick={() => { setActiveTab('sales'); setIsFormOpen(false); }}
+                    className={`hover:text-slate-900 transition-colors whitespace-nowrap py-1 cursor-pointer ${
+                      activeTab === 'sales' && !isFormOpen ? 'text-red-600 font-bold border-b-2 border-red-600' : ''
+                    }`}
                   >
                     매출 세금계산서
                   </button>
-                  <button 
-                    onClick={() => { setActiveTab('invoices'); setFilterKind('purchase'); setIsWriting(false); setSelectedInvoice(null); }}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${activeTab === 'invoices' && filterKind === 'purchase' && !isWriting ? 'bg-slate-100 text-blue-700' : 'text-slate-600 hover:text-slate-900'}`}
+                  <button
+                    onClick={() => { setActiveTab('purchase'); setIsFormOpen(false); }}
+                    className={`hover:text-slate-900 transition-colors whitespace-nowrap py-1 cursor-pointer ${
+                      activeTab === 'purchase' && !isFormOpen ? 'text-blue-600 font-bold border-b-2 border-blue-600' : ''
+                    }`}
                   >
                     매입 세금계산서
                   </button>
-                  <button 
-                    onClick={() => { setActiveTab('counterparties'); setIsWriting(false); setSelectedInvoice(null); }}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${activeTab === 'counterparties' ? 'bg-slate-100 text-blue-700' : 'text-slate-600 hover:text-slate-900'}`}
+                  <button
+                    onClick={() => { setActiveTab('counterparties'); setIsFormOpen(false); }}
+                    className={`hover:text-slate-900 transition-colors whitespace-nowrap py-1 cursor-pointer ${
+                      activeTab === 'counterparties' && !isFormOpen ? 'text-slate-900 font-bold border-b-2 border-slate-900' : ''
+                    }`}
                   >
                     거래처 관리
                   </button>
+                  <button
+                    onClick={() => { setActiveTab('settings'); setIsFormOpen(false); }}
+                    className={`hover:text-slate-900 transition-colors whitespace-nowrap py-1 cursor-pointer ${
+                      activeTab === 'settings' && !isFormOpen ? 'text-slate-900 font-bold border-b-2 border-slate-900' : ''
+                    }`}
+                  >
+                    사업자 설정
+                  </button>
                 </nav>
-              </div>
 
-              {/* 우측 로그인 / 회원가입 or 사용자 프로필 영역 */}
-              <div className="flex items-center gap-3">
-                {currentUser ? (
-                  <div className="flex items-center gap-3">
-                    <button 
-                      onClick={() => setShowProfileModal(true)}
-                      className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-slate-100 transition-colors text-left cursor-pointer"
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-xs">
-                        {currentUser.name?.[0] || '사'}
-                      </div>
-                      <div className="hidden sm:block text-xs">
-                        <div className="font-bold text-slate-800">{currentUser.name} {currentUser.companyName && <span className="font-normal text-slate-500">({currentUser.companyName})</span>}</div>
-                        <div className="text-[10px] text-slate-400 font-mono">{currentUser.email}</div>
-                      </div>
-                    </button>
-                    <button 
-                      onClick={handleLogout}
-                      className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg border border-slate-200 transition-colors cursor-pointer"
-                    >
-                      로그아웃
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <button 
-                      onClick={() => { setLoginMode('login'); setShowLoginModal(true); }}
-                      className="px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:text-blue-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                    >
-                      로그인
-                    </button>
-                    <button 
-                      onClick={() => { setLoginMode('signup'); setShowLoginModal(true); }}
-                      className="px-3.5 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-2xs transition-colors cursor-pointer"
-                    >
-                      회원가입
-                    </button>
-                  </div>
-                )}
+                {/* 우측 로그인/회원가입 or 프로필 드롭다운 */}
+                <div className="flex items-center gap-3 shrink-0">
+                  {currentUser ? (
+                    /* 로그인된 경우: 프로필 표시 & 로그아웃 메뉴 */
+                    <div className="relative" ref={dropdownRef}>
+                      <button
+                        onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+                        className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-100 transition-colors text-left cursor-pointer"
+                      >
+                        <div className="w-8 h-8 rounded-full bg-slate-900 text-white font-bold text-xs flex items-center justify-center border border-slate-700">
+                          {currentUser.name.slice(0, 1)}
+                        </div>
+                        <div className="hidden sm:block text-xs leading-tight">
+                          <div className="font-semibold text-slate-900">{currentUser.name}</div>
+                          <div className="text-[10px] text-slate-400 truncate max-w-[110px]">{currentUser.companyName}</div>
+                        </div>
+                        <svg className="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
+                      </button>
+
+                      {profileMenuOpen && (
+                        <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200 py-2 text-xs z-50">
+                          <div className="px-4 py-2 border-b border-slate-100">
+                            <p className="font-bold text-slate-900">{currentUser.name}</p>
+                            <p className="text-[11px] text-slate-400 truncate">{currentUser.email}</p>
+                            <p className="text-[10px] text-slate-500 font-mono mt-0.5">{currentUser.companyName} ({currentUser.bizNumber})</p>
+                          </div>
+                          <button
+                            onClick={() => { setActiveTab('settings'); setProfileMenuOpen(false); }}
+                            className="w-full text-left px-4 py-2.5 hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer"
+                          >
+                            <span>🏢</span> 사업자 정보 관리
+                          </button>
+                          <button
+                            onClick={handleLogout}
+                            className="w-full text-left px-4 py-2.5 hover:bg-red-50 text-red-600 font-medium flex items-center gap-2 border-t border-slate-100 cursor-pointer"
+                          >
+                            <span>🚪</span> 로그아웃
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    /* 비로그인된 경우: 로그인 / 회원가입 버튼 노출 */
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => { setAuthMode('login'); setAuthModalOpen(true); }}
+                        className="px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors whitespace-nowrap cursor-pointer"
+                      >
+                        로그인
+                      </button>
+                      <button
+                        onClick={() => { setAuthMode('signup'); setAuthModalOpen(true); }}
+                        className="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 rounded-lg transition-colors whitespace-nowrap shadow-2xs cursor-pointer"
+                      >
+                        회원가입
+                      </button>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={() => handleCreateInvoice('sales')}
+                    className="px-3.5 sm:px-4 py-2 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors whitespace-nowrap shrink-0 flex items-center gap-1.5 shadow-xs cursor-pointer"
+                  >
+                    <span className="text-emerald-400 font-bold text-sm">+</span>
+                    <span>세금계산서 작성</span>
+                  </button>
+                </div>
+
               </div>
             </div>
           </header>
 
-          {/* 본문 콘텐츠 */}
-          <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-            {isWriting ? (
-              <InvoiceWriter 
-                kind={writeKind}
-                company={company}
+          {/* 2. 대시보드 메인 본문 및 좌우/하단 광고 배너 슬롯 */}
+          <div className="flex-1 w-full max-w-[1660px] mx-auto px-2 sm:px-4 lg:px-6 flex justify-center gap-4 py-6">
+            
+            {/* [AD SLOT: LEFT WING BANNER (160x600)] 좌측 윙 광고 배너 */}
+            <aside aria-label="좌측 광고 배너" className="hidden 2xl:block w-[160px] shrink-0 self-start sticky top-24 no-print">
+              <div className="w-[160px] h-[600px] rounded-2xl border-2 border-dashed border-slate-300 bg-gradient-to-b from-slate-50 via-slate-100/70 to-slate-50 p-3.5 flex flex-col justify-between items-center text-center shadow-2xs hover:border-blue-400 transition-colors">
+                <div className="w-full flex items-center justify-between pb-2 border-b border-slate-200">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-200">AD</span>
+                  <span className="text-[10px] font-mono text-slate-400">160 × 600</span>
+                </div>
+                <div className="space-y-2 py-4">
+                  <div className="w-10 h-10 mx-auto rounded-xl bg-slate-200/80 flex items-center justify-center text-slate-400">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                  </div>
+                  <div className="text-xs font-bold text-slate-600">좌측 윙 광고</div>
+                  <p className="text-[11px] text-slate-400 leading-tight">스카이스크래퍼 세로형 디스플레이 광고 영역</p>
+                </div>
+                <div className="w-full pt-2 border-t border-slate-200 text-[10px] text-slate-400 font-mono">AdSense / AdFit</div>
+              </div>
+            </aside>
+
+            {/* 메인 콘텐츠 영역 */}
+            <main className="flex-1 max-w-7xl w-full min-w-0">
+            
+            {isFormOpen ? (
+              <InvoiceForm
+                kind={formInitialKind}
+                myCompany={myCompany}
                 counterparties={counterparties}
-                onSave={(newInv) => {
-                  setInvoices([newInv, ...invoices]);
-                  setIsWriting(false);
-                  setSelectedInvoice(newInv);
-                }}
-                onCancel={() => setIsWriting(false)}
+                onSave={handleSaveInvoice}
+                onCancel={() => setIsFormOpen(false)}
               />
-            ) : (
-              <>
-                {/* 비로그인 상태 안내 배너 */}
-                {!currentUser && (
-                  <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            ) : activeTab === 'dashboard' ? (
+              <div className="space-y-6">
+                
+                {/* 상단 사업자 카드 */}
+                <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-base shadow-xs shrink-0">
+                      {companyLogoText}
+                    </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 text-[10px] font-bold bg-white/20 rounded-full">안내</span>
-                        <h2 className="font-bold text-base">로그인 후 내 사업장 세금계산서를 안전하게 관리하세요</h2>
+                        <h2 className="text-base font-bold text-slate-900">{myCompany.companyName}</h2>
+                        <span className="text-xs font-mono text-slate-500">({myCompany.bizNumber})</span>
+                        {!currentUser && (
+                          <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-medium border border-slate-200">
+                            체험 모드
+                          </span>
+                        )}
                       </div>
-                      <p className="text-xs text-blue-100 mt-1">
-                        로그인하시면 본인 계정에 등록된 매출/매입 세금계산서 작성, 국세청 홈택스 즉시 전송 및 보관 관리가 가능합니다.
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={() => { setLoginMode('login'); setShowLoginModal(true); }}
-                        className="px-4 py-2 bg-white text-blue-700 hover:bg-blue-50 text-xs font-bold rounded-xl shadow-xs cursor-pointer transition-colors"
-                      >
-                        간편 로그인
-                      </button>
-                      <button 
-                        onClick={() => { setLoginMode('signup'); setShowLoginModal(true); }}
-                        className="px-4 py-2 bg-blue-800/80 hover:bg-blue-800 text-white text-xs font-bold rounded-xl border border-white/20 cursor-pointer transition-colors"
-                      >
-                        신규 회원가입
-                      </button>
+                      <div className="text-xs text-slate-500 mt-1 flex flex-wrap gap-x-4 gap-y-1">
+                        <span>대표: {myCompany.ceoName}</span>
+                        <span>업태/종목: {myCompany.bizType} / {myCompany.bizItem}</span>
+                        <span>{myCompany.address}</span>
+                      </div>
                     </div>
                   </div>
-                )}
 
-                {/* 주요 액션 버튼바 */}
-                <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
-                  <div>
-                    <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-                      {activeTab === 'dashboard' && '전자세금계산서 통합 대시보드'}
-                      {activeTab === 'invoices' && (filterKind === 'sales' ? '매출 전자세금계산서 관리' : '매입 전자세금계산서 관리')}
-                      {activeTab === 'counterparties' && '등록 거래처 및 사업자 관리'}
-                    </h1>
-                    <p className="text-xs text-slate-500 mt-1">
-                      국세청 표준 전자세금계산서 별지 제11호 서식 규격 준수 및 홈택스 실시간 연계 시스템
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-2.5">
-                    <button 
-                      onClick={() => {
-                        if (!currentUser) {
-                          alert('세금계산서 작성은 로그인 후 이용하실 수 있습니다.');
-                          setLoginMode('login');
-                          setShowLoginModal(true);
-                          return;
-                        }
-                        setWriteKind('sales');
-                        setIsWriting(true);
-                      }}
-                      className="flex items-center gap-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs hover:shadow-md transition-all cursor-pointer"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4"/></svg>
-                      매출 세금계산서 작성
-                    </button>
-                    <button 
-                      onClick={() => {
-                        if (!currentUser) {
-                          alert('세금계산서 등록은 로그인 후 이용하실 수 있습니다.');
-                          setLoginMode('login');
-                          setShowLoginModal(true);
-                          return;
-                        }
-                        setWriteKind('purchase');
-                        setIsWriting(true);
-                      }}
-                      className="flex items-center gap-1.5 px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4"/></svg>
-                      매입 세금계산서 등록
-                    </button>
-                  </div>
-                </div>
-
-                {/* 대시보드 탭 */}
-                {activeTab === 'dashboard' && (
-                  <div className="space-y-8">
-                    {/* 상단 통계 카드 */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-                        <div className="text-xs font-semibold text-slate-500 mb-1">총 매출 공급가액 (이번 달)</div>
-                        <div className="text-2xl font-black font-mono text-blue-700">
-                          ₩ {formatCurrency(totalSales)}
-                        </div>
-                        <div className="text-[11px] text-slate-400 mt-2 flex items-center justify-between">
-                          <span>발행 완료: {myInvoices.filter(i => i.kind === 'sales').length}건</span>
-                          <span className="text-blue-600 font-semibold">정상 반영</span>
-                        </div>
-                      </div>
-
-                      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-                        <div className="text-xs font-semibold text-slate-500 mb-1">총 매입 공급가액 (이번 달)</div>
-                        <div className="text-2xl font-black font-mono text-emerald-700">
-                          ₩ {formatCurrency(totalPurchase)}
-                        </div>
-                        <div className="text-[11px] text-slate-400 mt-2 flex items-center justify-between">
-                          <span>수취 완료: {myInvoices.filter(i => i.kind === 'purchase').length}건</span>
-                          <span className="text-emerald-600 font-semibold">매입세액 공제</span>
-                        </div>
-                      </div>
-
-                      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-                        <div className="text-xs font-semibold text-slate-500 mb-1">예상 납부 부가가치세</div>
-                        <div className="text-2xl font-black font-mono text-indigo-700">
-                          ₩ {formatCurrency(Math.max(0, Math.round((totalSales - totalPurchase) * 0.1)))}
-                        </div>
-                        <div className="text-[11px] text-slate-400 mt-2">
-                          매출세액 - 매입세액 산출분
-                        </div>
-                      </div>
-
-                      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-                        <div className="text-xs font-semibold text-slate-500 mb-1">홈택스 전송 대기 / 임시</div>
-                        <div className="text-2xl font-black font-mono text-amber-600">
-                          {pendingCount} <span className="text-sm font-normal text-slate-500">건</span>
-                        </div>
-                        <div className="text-[11px] text-amber-600 mt-2 font-semibold">
-                          익일 11시 전송 마감 규정 준수
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 최근 작성 및 수취 세금계산서 목록 */}
-                    <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
-                      <div className="p-5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          <h2 className="text-base font-bold text-slate-900">최근 세금계산서 내역</h2>
-                          <span className="text-xs text-slate-500">총 {filteredInvoices.length}건</span>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <input 
-                            type="text" 
-                            placeholder="상호, 사업자번호, 품목 검색..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="text-xs px-3 py-1.5 border border-slate-300 rounded-lg w-56 focus:outline-blue-600"
-                          />
-                        </div>
-                      </div>
-
-                      {currentUser ? (
-                        filteredInvoices.length > 0 ? (
-                          <div className="overflow-x-auto">
-                            <table className="w-full text-xs text-left">
-                              <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
-                                <tr>
-                                  <th className="py-3 px-4 font-semibold">구분</th>
-                                  <th className="py-3 px-4 font-semibold">작성일자</th>
-                                  <th className="py-3 px-4 font-semibold">거래처명</th>
-                                  <th className="py-3 px-4 font-semibold">사업자등록번호</th>
-                                  <th className="py-3 px-4 font-semibold">대표 품목</th>
-                                  <th className="py-3 px-4 font-semibold text-right">공급가액</th>
-                                  <th className="py-3 px-4 font-semibold text-right">세액</th>
-                                  <th className="py-3 px-4 font-semibold text-right">합계금액</th>
-                                  <th className="py-3 px-4 font-semibold text-center">홈택스 상태</th>
-                                  <th className="py-3 px-4 font-semibold text-center">관리</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-slate-100">
-                                {filteredInvoices.map((inv) => {
-                                  const target = inv.kind === 'sales' ? inv.buyer : inv.supplier;
-                                  return (
-                                    <tr key={inv.id} className="hover:bg-blue-50/50 transition-colors">
-                                      <td className="py-3 px-4">
-                                        <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${inv.kind === 'sales' ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                                          {inv.kind === 'sales' ? '매출' : '매입'}
-                                        </span>
-                                      </td>
-                                      <td className="py-3 px-4 font-mono text-slate-600">{inv.writeDate}</td>
-                                      <td className="py-3 px-4 font-bold text-slate-900">{target?.companyName || '-'}</td>
-                                      <td className="py-3 px-4 font-mono text-slate-500">{target?.bizNumber || '-'}</td>
-                                      <td className="py-3 px-4 text-slate-700 truncate max-w-[180px]">{inv.items[0]?.name || '-'}</td>
-                                      <td className="py-3 px-4 text-right font-mono text-slate-700">₩ {formatCurrency(inv.totalSupplyAmount)}</td>
-                                      <td className="py-3 px-4 text-right font-mono text-slate-500">₩ {formatCurrency(inv.totalTaxAmount)}</td>
-                                      <td className="py-3 px-4 text-right font-mono font-bold text-slate-900">₩ {formatCurrency(inv.grandTotal)}</td>
-                                      <td className="py-3 px-4 text-center">
-                                        {inv.status === 'hometax_sent' && <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">전송완료</span>}
-                                        {inv.status === 'received' && <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold">정상수취</span>}
-                                        {inv.status === 'draft' && <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold">임시/대기</span>}
-                                      </td>
-                                      <td className="py-3 px-4 text-center">
-                                        <button 
-                                          onClick={() => setSelectedInvoice(inv)}
-                                          className="text-xs text-blue-600 hover:text-blue-800 font-semibold cursor-pointer"
-                                        >
-                                          상세 서식
-                                        </button>
-                                      </td>
-                                    </tr>
-                                  );
-                                })}
-                              </tbody>
-                            </table>
-                          </div>
-                        ) : (
-                          <div className="py-16 text-center text-slate-400">
-                            <p className="text-sm">등록된 세금계산서 내역이 없습니다.</p>
-                            <p className="text-xs mt-1">상단의 [매출 세금계산서 작성] 또는 [매입 세금계산서 등록] 버튼을 눌러보세요.</p>
-                          </div>
-                        )
-                      ) : (
-                        <div className="py-20 text-center bg-slate-50/50">
-                          <div className="w-12 h-12 mx-auto rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center mb-3">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                          </div>
-                          <h3 className="text-sm font-bold text-slate-800">로그인이 필요한 서비스입니다</h3>
-                          <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-                            세금계산서 내역은 개인정보 및 사업자 정보 보호를 위해 로그인한 사용자 본인의 데이터만 안전하게 표시됩니다.
-                          </p>
-                          <div className="mt-4 flex justify-center gap-2">
-                            <button 
-                              onClick={() => { setLoginMode('login'); setShowLoginModal(true); }}
-                              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold cursor-pointer shadow-xs"
-                            >
-                              로그인하기
-                            </button>
-                            <button 
-                              onClick={() => { setLoginMode('signup'); setShowLoginModal(true); }}
-                              className="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-xl text-xs font-semibold cursor-pointer"
-                            >
-                              신규 회원가입
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* 매출/매입 세금계산서 전용 탭 */}
-                {activeTab === 'invoices' && (
-                  <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
-                    <div className="p-5 border-b border-slate-200 flex justify-between items-center">
-                      <h2 className="text-base font-bold text-slate-900">
-                        {filterKind === 'sales' ? '매출 전자세금계산서 관리대장' : '매입 전자세금계산서 관리대장'}
-                      </h2>
-                      <div className="flex gap-2">
-                        <select 
-                          value={filterStatus} 
-                          onChange={(e) => setFilterStatus(e.target.value)}
-                          className="text-xs p-2 border border-slate-300 rounded-lg"
-                        >
-                          <option value="all">전체 상태</option>
-                          <option value="hometax_sent">홈택스 전송완료</option>
-                          <option value="draft">임시/대기</option>
-                        </select>
-                      </div>
-                    </div>
-                    {/* 테이블 목록 */}
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-xs text-left">
-                        <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
-                          <tr>
-                            <th className="py-3 px-4 font-semibold">작성일자</th>
-                            <th className="py-3 px-4 font-semibold">상호(법인명)</th>
-                            <th className="py-3 px-4 font-semibold">사업자번호</th>
-                            <th className="py-3 px-4 font-semibold">대표품목</th>
-                            <th className="py-3 px-4 font-semibold text-right">공급가액</th>
-                            <th className="py-3 px-4 font-semibold text-right">세액</th>
-                            <th className="py-3 px-4 font-semibold text-right">합계</th>
-                            <th className="py-3 px-4 font-semibold text-center">전송상태</th>
-                            <th className="py-3 px-4 font-semibold text-center">관리</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {filteredInvoices.map((inv) => {
-                            const target = inv.kind === 'sales' ? inv.buyer : inv.supplier;
-                            return (
-                              <tr key={inv.id} className="hover:bg-slate-50">
-                                <td className="py-3 px-4 font-mono">{inv.writeDate}</td>
-                                <td className="py-3 px-4 font-bold">{target?.companyName || '-'}</td>
-                                <td className="py-3 px-4 font-mono text-slate-500">{target?.bizNumber || '-'}</td>
-                                <td className="py-3 px-4 text-slate-700">{inv.items[0]?.name || '-'}</td>
-                                <td className="py-3 px-4 text-right font-mono">₩ {formatCurrency(inv.totalSupplyAmount)}</td>
-                                <td className="py-3 px-4 text-right font-mono text-slate-500">₩ {formatCurrency(inv.totalTaxAmount)}</td>
-                                <td className="py-3 px-4 text-right font-mono font-bold">₩ {formatCurrency(inv.grandTotal)}</td>
-                                <td className="py-3 px-4 text-center">
-                                  <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-blue-100 text-blue-700">
-                                    {inv.status === 'hometax_sent' ? '전송완료' : '작성완료'}
-                                  </span>
-                                </td>
-                                <td className="py-3 px-4 text-center">
-                                  <button onClick={() => setSelectedInvoice(inv)} className="text-blue-600 font-semibold hover:underline">
-                                    서식보기
-                                  </button>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-
-                {/* 거래처 관리 탭 */}
-                {activeTab === 'counterparties' && (
-                  <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs p-6">
-                    <div className="flex justify-between items-center mb-6">
-                      <h2 className="text-base font-bold text-slate-900">등록 거래처 목록</h2>
-                      <button 
-                        onClick={() => alert('새 거래처 등록 폼이 준비 중입니다.')} 
-                        className="px-3.5 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold cursor-pointer"
-                      >
-                        + 거래처 추가
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {counterparties.map((cp) => (
-                        <div key={cp.id} className="p-4 border border-slate-200 rounded-xl hover:border-blue-400 transition-colors">
-                          <div className="flex justify-between items-start">
-                            <span className="font-bold text-slate-900 text-sm">{cp.companyName}</span>
-                            <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">{cp.bizNumber}</span>
-                          </div>
-                          <div className="text-xs text-slate-500 mt-2 space-y-1">
-                            <div>대표자: {cp.ceoName}</div>
-                            <div>업태/종목: {cp.bizType} / {cp.bizItem}</div>
-                            <div className="truncate">주소: {cp.address}</div>
-                            <div className="text-blue-600 font-mono text-[11px]">{cp.email}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </main>
-
-          {/* 표준 세금계산서 (별지 제11호 서식) 모달 */}
-          {selectedInvoice && (
-            <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 overflow-y-auto">
-              <div id="printable-modal" className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full p-6 md:p-8 my-8 relative">
-                <div className="no-print flex justify-between items-center pb-4 border-b border-slate-200 mb-6">
                   <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-1 text-xs font-bold rounded bg-blue-100 text-blue-800">
-                      국세청 별지 제11호 서식
-                    </span>
-                    <span className="text-xs text-slate-500">승인번호: {selectedInvoice.hometaxApprovalNo || '전송 대기'}</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => window.print()} className="px-4 py-1.5 bg-slate-800 text-white rounded-lg text-xs font-bold cursor-pointer">
-                      인쇄 / PDF 출력
+                    <button
+                      onClick={() => handleCreateInvoice('sales')}
+                      className="px-3.5 py-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors shadow-2xs cursor-pointer"
+                    >
+                      매출 작성
                     </button>
-                    <button onClick={() => setSelectedInvoice(null)} className="px-4 py-1.5 border border-slate-300 rounded-lg text-xs font-semibold cursor-pointer">
-                      닫기
+                    <button
+                      onClick={() => handleCreateInvoice('purchase')}
+                      className="px-3.5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-2xs cursor-pointer"
+                    >
+                      매입 등록
                     </button>
                   </div>
                 </div>
 
-                {/* 실제 세금계산서 서식 (빨간색 공급자용 / 파란색 공급받는자용 디자인) */}
-                <div className="border-2 border-red-500 p-4 rounded-lg bg-white">
-                  <div className="text-center pb-3 border-b-2 border-red-500">
-                    <h1 className="text-2xl font-black tracking-widest text-red-600">
-                      세 금 계 산 서
-                    </h1>
-                    <span className="text-xs text-red-500">(공급자 보관용)</span>
-                  </div>
-
-                  <div className="grid grid-cols-2 divide-x-2 divide-red-500 border-b-2 border-red-500 text-xs">
-                    {/* 공급자 정보 */}
-                    <div className="p-3 space-y-1">
-                      <div className="font-bold text-red-600 mb-2">[ 공 급 자 ]</div>
-                      <div><strong>등록번호:</strong> <span className="font-mono">{selectedInvoice.supplier?.bizNumber || '(미입력)'}</span></div>
-                      <div><strong>상호(법인명):</strong> {selectedInvoice.supplier?.companyName || '(미입력)'}</div>
-                      <div><strong>성명(대표):</strong> {selectedInvoice.supplier?.ceoName || '(미입력)'}</div>
-                      <div><strong>사업장주소:</strong> {selectedInvoice.supplier?.address || '(미입력)'}</div>
-                      <div><strong>업태:</strong> {selectedInvoice.supplier?.bizType || '-'} / <strong>종목:</strong> {selectedInvoice.supplier?.bizItem || '-'}</div>
+                {/* 주요 지표 통계 4종 카드 */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs">
+                    <div className="text-xs font-medium text-slate-500">총 매출 공급가액 (이번 달)</div>
+                    <div className="text-xl font-bold font-mono text-slate-900 mt-2">
+                      ₩ {formatCurrency(totalSalesSupply)}
                     </div>
-
-                    {/* 공급받는자 정보 */}
-                    <div className="p-3 space-y-1">
-                      <div className="font-bold text-blue-600 mb-2">[ 공급받는자 ]</div>
-                      <div><strong>등록번호:</strong> <span className="font-mono">{selectedInvoice.buyer?.bizNumber || '(미입력)'}</span></div>
-                      <div><strong>상호(법인명):</strong> {selectedInvoice.buyer?.companyName || '(미입력)'}</div>
-                      <div><strong>성명(대표):</strong> {selectedInvoice.buyer?.ceoName || '(미입력)'}</div>
-                      <div><strong>사업장주소:</strong> {selectedInvoice.buyer?.address || '(미입력)'}</div>
-                      <div><strong>업태:</strong> {selectedInvoice.buyer?.bizType || '-'} / <strong>종목:</strong> {selectedInvoice.buyer?.bizItem || '-'}</div>
+                    <div className="text-[11px] text-red-600 mt-2 font-medium">
+                      세액: ₩ {formatCurrency(totalSalesTax)} (합계 ₩ {formatCurrency(totalSalesGrand)})
                     </div>
                   </div>
 
-                  {/* 품목 내역 */}
-                  <div className="py-3 border-b-2 border-red-500 text-xs overflow-x-auto">
-                    <table className="w-full text-center">
-                      <thead className="bg-red-50 text-red-800 font-bold border-b border-red-300">
-                        <tr>
-                          <th className="p-2">월/일</th>
-                          <th className="p-2">품목 / 규격</th>
-                          <th className="p-2">수량</th>
-                          <th className="p-2">단가</th>
-                          <th className="p-2">공급가액</th>
-                          <th className="p-2">세액</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-red-200">
-                        {selectedInvoice.items.map((item, idx) => (
-                          <tr key={idx}>
-                            <td className="p-2 font-mono">{item.date}</td>
-                            <td className="p-2 text-left">{item.name} {item.spec && `(${item.spec})`}</td>
-                            <td className="p-2 font-mono">{item.qty}</td>
-                            <td className="p-2 font-mono text-right">{formatCurrency(item.unitPrice)}</td>
-                            <td className="p-2 font-mono text-right font-bold">{formatCurrency(item.supplyAmount)}</td>
-                            <td className="p-2 font-mono text-right">{formatCurrency(item.taxAmount)}</td>
+                  <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs">
+                    <div className="text-xs font-medium text-slate-500">총 매입 공급가액 (이번 달)</div>
+                    <div className="text-xl font-bold font-mono text-slate-900 mt-2">
+                      ₩ {formatCurrency(totalPurchaseSupply)}
+                    </div>
+                    <div className="text-[11px] text-blue-600 mt-2 font-medium">
+                      세액: ₩ {formatCurrency(totalPurchaseTax)} (합계 ₩ {formatCurrency(totalPurchaseGrand)})
+                    </div>
+                  </div>
+
+                  <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs">
+                    <div className="text-xs font-medium text-slate-500">예상 납부 부가가치세</div>
+                    <div className="text-xl font-bold font-mono text-slate-900 mt-2">
+                      ₩ {formatCurrency(estimatedVatPayable)}
+                    </div>
+                    <div className="text-[11px] text-slate-400 mt-2">
+                      매출세액 - 매입세액 산출분
+                    </div>
+                  </div>
+
+                  <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs">
+                    <div className="text-xs font-medium text-slate-500">국세청 전송 현황</div>
+                    <div className="flex items-center gap-3 mt-2">
+                      <div>
+                        <span className="text-xs text-slate-400">전송완료</span>
+                        <div className="text-lg font-bold text-emerald-600">{sentCount}건</div>
+                      </div>
+                      <div className="h-8 w-px bg-slate-200"></div>
+                      <div>
+                        <span className="text-xs text-slate-400">전송대기</span>
+                        <div className="text-lg font-bold text-amber-600">{unsentCount}건</div>
+                      </div>
+                    </div>
+                    <div className="text-[11px] text-slate-400 mt-2">
+                      임시저장 {draftCount}건 보관 중
+                    </div>
+                  </div>
+                </div>
+
+                {/* 최근 작성 및 수취 세금계산서 목록 */}
+                <div className="bg-white border border-slate-200 rounded-xl shadow-2xs overflow-hidden">
+                  <div className="p-4 sm:p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <h3 className="font-bold text-slate-900 text-sm">최근 작성 및 수취 세금계산서</h3>
+                      <p className="text-xs text-slate-400 mt-0.5">최근 발급 및 수취한 전자세금계산서 내역입니다.</p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={filterKind}
+                        onChange={e => setFilterKind(e.target.value)}
+                        className="text-xs border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white text-slate-700"
+                      >
+                        <option value="all">전체 구분</option>
+                        <option value="sales">매출만</option>
+                        <option value="purchase">매입만</option>
+                      </select>
+                      <input
+                        type="text"
+                        placeholder="상호, 사업자번호, 품목 검색..."
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                        className="text-xs border border-slate-300 rounded-lg px-3 py-1.5 w-48 sm:w-60 focus:outline-slate-900"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 목록 테이블 or 비로그인 안내 */}
+                  {currentUser ? (
+                    filteredInvoices.length > 0 ? (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs text-slate-600">
+                          <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+                            <tr>
+                              <th className="p-3">구분</th>
+                              <th className="p-3">작성일자</th>
+                              <th className="p-3">거래처 상호 (사업자번호)</th>
+                              <th className="p-3">품목</th>
+                              <th className="p-3 text-right">공급가액</th>
+                              <th className="p-3 text-right">세액</th>
+                              <th className="p-3 text-right">합계금액</th>
+                              <th className="p-3 text-center">전송상태</th>
+                              <th className="p-3 text-center">관리</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {filteredInvoices.map(inv => {
+                              const target = inv.kind === 'sales' ? inv.buyer : inv.supplier;
+                              return (
+                                <tr key={inv.id} className="hover:bg-slate-50/70 transition-colors">
+                                  <td className="p-3">
+                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                      inv.kind === 'sales' ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-700'
+                                    }`}>
+                                      {inv.kind === 'sales' ? '매출' : '매입'}
+                                    </span>
+                                  </td>
+                                  <td className="p-3 font-mono text-slate-500">{inv.writeDate}</td>
+                                  <td className="p-3">
+                                    <div className="font-semibold text-slate-900">{target.companyName}</div>
+                                    <div className="text-[10px] font-mono text-slate-400">{target.bizNumber}</div>
+                                  </td>
+                                  <td className="p-3 text-slate-700">{inv.items[0]?.name}</td>
+                                  <td className="p-3 text-right font-mono">₩ {formatCurrency(inv.totalSupplyAmount)}</td>
+                                  <td className="p-3 text-right font-mono text-red-600">₩ {formatCurrency(inv.totalTaxAmount)}</td>
+                                  <td className="p-3 text-right font-mono font-bold text-slate-900">₩ {formatCurrency(inv.grandTotal)}</td>
+                                  <td className="p-3 text-center">
+                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                      inv.status === 'hometax_sent' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+                                    }`}>
+                                      {inv.status === 'hometax_sent' ? '국세청 전송완료' : '미전송 (대기)'}
+                                    </span>
+                                  </td>
+                                  <td className="p-3 text-center">
+                                    <div className="flex items-center justify-center gap-1.5">
+                                      <button
+                                        onClick={() => setViewingInvoice(inv)}
+                                        className="px-2.5 py-1 text-slate-600 hover:text-slate-900 border border-slate-200 rounded hover:bg-white text-[11px] font-medium cursor-pointer"
+                                      >
+                                        상세보기
+                                      </button>
+                                      {inv.status !== 'hometax_sent' && (
+                                        <button
+                                          onClick={() => handleSendHometax(inv.id)}
+                                          className="px-2.5 py-1 text-white bg-slate-900 hover:bg-slate-800 rounded text-[11px] font-medium cursor-pointer"
+                                        >
+                                          전송
+                                        </button>
+                                      )}
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="p-12 text-center text-slate-400 text-xs">
+                        작성되거나 수취된 세금계산서가 없습니다.
+                      </div>
+                    )
+                  ) : (
+                    /* 비로그인 상태일 때의 안내 화면 */
+                    <div className="p-12 text-center">
+                      <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                        <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                      </div>
+                      <h4 className="font-bold text-slate-800 text-sm">로그인이 필요한 영역입니다</h4>
+                      <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                        최근 작성 및 수취 세금계산서 내역은 로그인한 회원 본인의 고유 정보로만 안전하게 저장 및 조회됩니다.
+                      </p>
+                      <div className="mt-4 flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => { setAuthMode('login'); setAuthModalOpen(true); }}
+                          className="px-4 py-2 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-lg cursor-pointer shadow-xs"
+                        >
+                          로그인하기
+                        </button>
+                        <button
+                          onClick={() => { setAuthMode('signup'); setAuthModalOpen(true); }}
+                          className="px-4 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 rounded-lg cursor-pointer shadow-2xs"
+                        >
+                          회원가입
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            ) : activeTab === 'sales' || activeTab === 'purchase' ? (
+              /* 매출 / 매입 탭 */
+              <div className="bg-white border border-slate-200 rounded-xl shadow-2xs p-5 space-y-4">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-base font-bold text-slate-900">
+                    {activeTab === 'sales' ? '매출 세금계산서 원장' : '매입 세금계산서 원장'}
+                  </h2>
+                  <button onClick={() => handleCreateInvoice(activeTab)} className="px-3 py-1.5 text-xs bg-slate-900 text-white rounded-lg font-semibold cursor-pointer">
+                    + 신규 작성
+                  </button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs text-slate-600">
+                    <thead className="bg-slate-50 border-b border-slate-200">
+                      <tr>
+                        <th className="p-3">작성일자</th>
+                        <th className="p-3">거래처명</th>
+                        <th className="p-3">품목</th>
+                        <th className="p-3 text-right">공급가액</th>
+                        <th className="p-3 text-right">세액</th>
+                        <th className="p-3 text-right">합계</th>
+                        <th className="p-3 text-center">상태</th>
+                        <th className="p-3 text-center">관리</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {invoices.filter(i => i.kind === activeTab).map(inv => {
+                        const target = inv.kind === 'sales' ? inv.buyer : inv.supplier;
+                        return (
+                          <tr key={inv.id} className="hover:bg-slate-50">
+                            <td className="p-3 font-mono">{inv.writeDate}</td>
+                            <td className="p-3">
+                              <div className="font-semibold text-slate-900">{target.companyName}</div>
+                              <div className="text-[10px] text-slate-400 font-mono">{target.bizNumber}</div>
+                            </td>
+                            <td className="p-3 text-slate-700">{inv.items[0]?.name}</td>
+                            <td className="p-3 text-right font-mono">₩ {formatCurrency(inv.totalSupplyAmount)}</td>
+                            <td className="p-3 text-right font-mono text-red-600">₩ {formatCurrency(inv.totalTaxAmount)}</td>
+                            <td className="p-3 text-right font-mono font-bold text-slate-900">₩ {formatCurrency(inv.grandTotal)}</td>
+                            <td className="p-3 text-center">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${inv.status === 'hometax_sent' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
+                                {inv.status === 'hometax_sent' ? '국세청 전송완료' : '미전송 (대기)'}
+                              </span>
+                            </td>
+                            <td className="p-3 text-center">
+                              <button onClick={() => setViewingInvoice(inv)} className="px-2 py-1 text-slate-600 hover:text-slate-900 font-medium cursor-pointer">보기</button>
+                            </td>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* 금액 합계 */}
-                  <div className="p-3 bg-red-50 flex justify-between items-center text-xs font-bold text-red-900">
-                    <div>합계금액: <span className="text-base font-mono font-black ml-1 text-red-600">₩ {formatCurrency(selectedInvoice.grandTotal)}</span></div>
-                    <div>공급가액: <span className="font-mono ml-1">₩ {formatCurrency(selectedInvoice.totalSupplyAmount)}</span></div>
-                    <div>세액: <span className="font-mono ml-1">₩ {formatCurrency(selectedInvoice.totalTaxAmount)}</span></div>
-                  </div>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* 사업자 정보 설정 모달 (초기 빈칸) */}
-          {showProfileModal && (
-            <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4">
-              <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-xl">
-                <div className="flex justify-between items-center pb-3 border-b border-slate-200">
-                  <h3 className="font-bold text-slate-900 text-base">사업자 정보 설정</h3>
-                  <button onClick={() => setShowProfileModal(false)} className="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">×</button>
+            ) : activeTab === 'counterparties' ? (
+              <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-2xs space-y-4">
+                <h2 className="text-base font-bold text-slate-900">등록 거래처 원장</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {counterparties.map(cp => (
+                    <div key={cp.id} className="p-4 border border-slate-200 rounded-xl space-y-1 text-xs">
+                      <div className="font-bold text-sm text-slate-900">{cp.companyName} <span className="font-mono text-slate-500 font-normal">({cp.bizNumber})</span></div>
+                      <div>대표자: {cp.ceoName} · {cp.bizType} / {cp.bizItem}</div>
+                      <div className="text-slate-400">{cp.address}</div>
+                    </div>
+                  ))}
                 </div>
+              </div>
+            ) : (
+              <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-2xs max-w-xl mx-auto space-y-4">
+                <h2 className="text-base font-bold text-slate-900">내 사업자 정보 설정</h2>
                 <div className="space-y-3 text-xs">
                   <div>
-                    <label className="block text-slate-500 mb-1 font-semibold">사업자등록번호</label>
-                    <input 
-                      value={company.bizNumber} 
-                      onChange={e => setCompany({...company, bizNumber: e.target.value})} 
-                      placeholder="000-00-00000"
-                      className="w-full p-2 border border-slate-300 rounded-lg font-mono"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-slate-500 mb-1 font-semibold">상호 (법인명)</label>
-                      <input 
-                        value={company.companyName} 
-                        onChange={e => setCompany({...company, companyName: e.target.value})} 
-                        placeholder="상호 또는 법인명 입력"
-                        className="w-full p-2 border border-slate-300 rounded-lg"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-slate-500 mb-1 font-semibold">대표자 성명</label>
-                      <input 
-                        value={company.ceoName} 
-                        onChange={e => setCompany({...company, ceoName: e.target.value})} 
-                        placeholder="대표자명 입력"
-                        className="w-full p-2 border border-slate-300 rounded-lg"
-                      />
-                    </div>
+                    <label className="block text-slate-500 mb-1">상호(법인명)</label>
+                    <input placeholder="상호 또는 법인명 입력" value={myCompany.companyName} onChange={e => setMyCompany({ ...myCompany, companyName: e.target.value })} className="w-full p-2 border border-slate-300 rounded-lg font-bold" />
                   </div>
                   <div>
-                    <label className="block text-slate-500 mb-1 font-semibold">사업장 소재지 주소</label>
-                    <input 
-                      value={company.address} 
-                      onChange={e => setCompany({...company, address: e.target.value})} 
-                      placeholder="사업장 도로명 주소 입력"
-                      className="w-full p-2 border border-slate-300 rounded-lg"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-slate-500 mb-1 font-semibold">업태</label>
-                      <input 
-                        value={company.bizType} 
-                        onChange={e => setCompany({...company, bizType: e.target.value})} 
-                        placeholder="업태 입력"
-                        className="w-full p-2 border border-slate-300 rounded-lg"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-slate-500 mb-1 font-semibold">종목</label>
-                      <input 
-                        value={company.bizItem} 
-                        onChange={e => setCompany({...company, bizItem: e.target.value})} 
-                        placeholder="종목 입력"
-                        className="w-full p-2 border border-slate-300 rounded-lg"
-                      />
-                    </div>
+                    <label className="block text-slate-500 mb-1">사업자등록번호</label>
+                    <input placeholder="000-00-00000" value={myCompany.bizNumber} onChange={e => setMyCompany({ ...myCompany, bizNumber: e.target.value })} className="w-full p-2 border border-slate-300 rounded-lg font-mono font-bold" />
                   </div>
                   <div>
-                    <label className="block text-slate-500 mb-1 font-semibold">전자세금계산서 수신 이메일</label>
-                    <input 
-                      value={company.email} 
-                      onChange={e => setCompany({...company, email: e.target.value})} 
-                      placeholder="tax@example.com"
-                      className="w-full p-2 border border-slate-300 rounded-lg font-mono"
-                    />
+                    <label className="block text-slate-500 mb-1">대표자명</label>
+                    <input placeholder="대표자 성명 입력" value={myCompany.ceoName} onChange={e => setMyCompany({ ...myCompany, ceoName: e.target.value })} className="w-full p-2 border border-slate-300 rounded-lg" />
                   </div>
-                </div>
-                <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
-                  <button onClick={() => setShowProfileModal(false)} className="px-4 py-2 border border-slate-300 rounded-lg text-xs font-semibold cursor-pointer">
-                    취소
-                  </button>
-                  <button onClick={() => { setShowProfileModal(false); alert('사업자 정보가 저장되었습니다.'); }} className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold cursor-pointer">
-                    저장하기
-                  </button>
+                  <button onClick={() => showToast('사업자 정보가 저장되었습니다.')} className="w-full py-2.5 bg-slate-900 text-white rounded-lg font-bold cursor-pointer">저장하기</button>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* 로그인 / 회원가입 모달 */}
-          {showLoginModal && (
-            <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4">
-              <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
-                <button onClick={() => setShowLoginModal(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-lg cursor-pointer">×</button>
-                <div className="text-center mb-5">
-                  <div className="w-10 h-10 bg-blue-600 text-white font-black text-xl rounded-xl flex items-center justify-center mx-auto mb-2 shadow-xs">T</div>
-                  <h3 className="text-lg font-black text-slate-900">
-                    {loginMode === 'login' ? 'TaxOne 로그인' : 'TaxOne 신규 회원가입'}
-                  </h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    {loginMode === 'login' ? '등록된 계정으로 로그인하세요.' : '새로운 사업자 계정을 생성합니다.'}
+            {/* [AD SLOT: BOTTOM HORIZONTAL BANNER] 하단 가로형 배너 광고 슬롯 (728x90 / 반응형) */}
+            <div className="w-full max-w-7xl mx-auto mt-8 mb-2 px-2 no-print">
+              <div className="relative overflow-hidden rounded-2xl border-2 border-dashed border-slate-300 bg-gradient-to-r from-slate-50 via-slate-100/60 to-slate-50 p-6 text-center shadow-2xs hover:border-blue-400 transition-colors">
+                <div className="absolute top-2.5 left-3 flex items-center gap-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-white px-2 py-0.5 rounded border border-slate-200">
+                    SPONSORED AD
+                  </span>
+                </div>
+                <div className="py-2 flex flex-col items-center justify-center space-y-1">
+                  <div className="flex items-center gap-2 text-slate-500 font-medium text-xs sm:text-sm">
+                    <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                    </svg>
+                    <span>하단 가로형 배너 광고 영역 (728×90 / 970×90 / 반응형)</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400">
+                    구글 애드센스(Google AdSense) 또는 카카오 애드핏(Kakao AdFit) 수평 디스플레이 광고 슬롯입니다.
                   </p>
                 </div>
-
-                <form onSubmit={handleLogin} className="space-y-3 text-xs">
-                  {loginMode === 'signup' && (
-                    <>
-                      <div>
-                        <label className="block text-slate-600 font-semibold mb-1">성명 (대표자)</label>
-                        <input 
-                          type="text" 
-                          required 
-                          value={authName} 
-                          onChange={e => setAuthName(e.target.value)} 
-                          placeholder="홍길동"
-                          className="w-full p-2.5 border border-slate-300 rounded-xl focus:border-blue-600"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-slate-600 font-semibold mb-1">상호 또는 회사명</label>
-                        <input 
-                          type="text" 
-                          required 
-                          value={authCompany} 
-                          onChange={e => setAuthCompany(e.target.value)} 
-                          placeholder="(주)텍스원"
-                          className="w-full p-2.5 border border-slate-300 rounded-xl focus:border-blue-600"
-                        />
-                      </div>
-                    </>
-                  )}
-
-                  <div>
-                    <label className="block text-slate-600 font-semibold mb-1">이메일 주소</label>
-                    <input 
-                      type="email" 
-                      required 
-                      value={authEmail} 
-                      onChange={e => setAuthEmail(e.target.value)} 
-                      placeholder="user@example.com"
-                      className="w-full p-2.5 border border-slate-300 rounded-xl focus:border-blue-600"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-slate-600 font-semibold mb-1">비밀번호</label>
-                    <input 
-                      type="password" 
-                      required 
-                      value={authPassword} 
-                      onChange={e => setAuthPassword(e.target.value)} 
-                      placeholder="••••••••"
-                      className="w-full p-2.5 border border-slate-300 rounded-xl focus:border-blue-600"
-                    />
-                  </div>
-
-                  <button 
-                    type="submit" 
-                    className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-xs cursor-pointer transition-colors mt-2"
-                  >
-                    {loginMode === 'login' ? '로그인' : '회원가입 완료'}
-                  </button>
-                </form>
-
-                <div className="mt-4 pt-3 border-t border-slate-200 text-center text-xs text-slate-500">
-                  {loginMode === 'login' ? (
-                    <div>
-                      아직 계정이 없으신가요?{' '}
-                      <button onClick={() => setLoginMode('signup')} className="text-blue-600 font-bold hover:underline cursor-pointer">
-                        회원가입
-                      </button>
-                    </div>
-                  ) : (
-                    <div>
-                      이미 계정이 있으신가요?{' '}
-                      <button onClick={() => setLoginMode('login')} className="text-blue-600 font-bold hover:underline cursor-pointer">
-                        로그인
-                      </button>
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
+
+          </main>
+
+          {/* [AD SLOT: RIGHT WING BANNER (160x600)] 우측 윙 광고 배너 */}
+          <aside aria-label="우측 광고 배너" className="hidden 2xl:block w-[160px] shrink-0 self-start sticky top-24 no-print">
+            <div className="w-[160px] h-[600px] rounded-2xl border-2 border-dashed border-slate-300 bg-gradient-to-b from-slate-50 via-slate-100/70 to-slate-50 p-3.5 flex flex-col justify-between items-center text-center shadow-2xs hover:border-blue-400 transition-colors">
+              <div className="w-full flex items-center justify-between pb-2 border-b border-slate-200">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-200">AD</span>
+                <span className="text-[10px] font-mono text-slate-400">160 × 600</span>
+              </div>
+              <div className="space-y-2 py-4">
+                <div className="w-10 h-10 mx-auto rounded-xl bg-slate-200/80 flex items-center justify-center text-slate-400">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                </div>
+                <div className="text-xs font-bold text-slate-600">우측 윙 광고</div>
+                <p className="text-[11px] text-slate-400 leading-tight">스카이스크래퍼 세로형 디스플레이 광고 영역</p>
+              </div>
+              <div className="w-full pt-2 border-t border-slate-200 text-[10px] text-slate-400 font-mono">AdSense / AdFit</div>
+            </div>
+          </aside>
+        </div>
+
+          {/* 3. 로그인 및 회원가입 모달 */}
+          {authModalOpen && (
+            <AuthModal
+              mode={authMode}
+              setMode={setAuthMode}
+              onClose={() => setAuthModalOpen(false)}
+              onSuccess={handleLoginSuccess}
+            />
           )}
+
+          {/* 4. 공인인증서 전자서명 모달 */}
+          {signingInvoice && (
+            <SigningModal
+              invoice={signingInvoice}
+              onClose={() => setSigningInvoice(null)}
+              onConfirm={handleCompleteSign}
+            />
+          )}
+
+          {/* 5. 세금계산서 표준 서식 뷰어 모달 */}
+          {viewingInvoice && (
+            <InvoiceViewerModal
+              invoice={viewingInvoice}
+              onClose={() => setViewingInvoice(null)}
+            />
+          )}
+
+          {/* 토스트 알림 메시지 */}
+          {toast && (
+            <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white text-xs font-medium px-4 py-2.5 rounded-lg shadow-xl animate-bounce">
+              {toast}
+            </div>
+          )}
+
         </div>
       );
     }
 
     // 세금계산서 작성 서식 컴포넌트
-    function InvoiceWriter({ kind, company, counterparties, onSave, onCancel }) {
+    function InvoiceForm({ kind, myCompany, counterparties, onSave, onCancel }) {
       const [buyer, setBuyer] = useState(counterparties[0]);
       const [itemDesc, setItemDesc] = useState('');
       const [qty, setQty] = useState(1);
@@ -1012,8 +919,8 @@
           type: 'general',
           kind: kind,
           writeDate: '2026-10-22',
-          supplier: kind === 'sales' ? company : buyer,
-          buyer: kind === 'sales' ? buyer : company,
+          supplier: kind === 'sales' ? myCompany : buyer,
+          buyer: kind === 'sales' ? buyer : myCompany,
           items: [
             {
               id: 'it-' + Date.now(),
@@ -1087,6 +994,153 @@
           <div className="flex justify-end gap-2 pt-2">
             <button onClick={onCancel} className="px-4 py-2 border border-slate-300 rounded-lg text-xs font-semibold cursor-pointer">취소</button>
             <button onClick={handleSubmit} className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold cursor-pointer">발행 및 저장</button>
+          </div>
+        </div>
+      );
+    }
+
+    // 인증 모달 컴포넌트
+    function AuthModal({ mode, setMode, onClose, onSuccess }) {
+      const [email, setEmail] = useState('');
+      const [password, setPassword] = useState('');
+      const [name, setName] = useState('');
+      const [companyName, setCompanyName] = useState('');
+      const [bizNumber, setBizNumber] = useState('');
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!email.trim() || !password.trim()) {
+          alert('이메일과 비밀번호를 입력해주세요.');
+          return;
+        }
+        if (mode === 'signup' && (!name.trim() || !companyName.trim())) {
+          alert('성명과 상호명을 입력해주세요.');
+          return;
+        }
+        onSuccess({
+          id: 'user_' + Date.now(),
+          email: email.trim(),
+          name: mode === 'signup' ? name.trim() : email.split('@')[0],
+          companyName: mode === 'signup' ? companyName.trim() : '개인 사업장',
+          bizNumber: mode === 'signup' ? bizNumber.trim() : '000-00-00000',
+        });
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
+            <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-lg cursor-pointer">×</button>
+            <div className="text-center mb-5">
+              <div className="w-10 h-10 bg-slate-900 text-white font-black text-xl rounded-xl flex items-center justify-center mx-auto mb-2 shadow-xs">T</div>
+              <h3 className="text-lg font-black text-slate-900">{mode === 'login' ? 'TaxOne 로그인' : '신규 회원가입'}</h3>
+              <p className="text-xs text-slate-500 mt-0.5">{mode === 'login' ? '등록된 계정으로 로그인하세요.' : '새로운 사업자 계정을 생성합니다.'}</p>
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-3 text-xs">
+              {mode === 'signup' && (
+                <>
+                  <div>
+                    <label className="block text-slate-600 font-semibold mb-1">성명 (대표자)</label>
+                    <input type="text" required value={name} onChange={e => setName(e.target.value)} placeholder="홍길동" className="w-full p-2.5 border border-slate-300 rounded-xl" />
+                  </div>
+                  <div>
+                    <label className="block text-slate-600 font-semibold mb-1">상호 또는 법인명</label>
+                    <input type="text" required value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="(주)텍스원" className="w-full p-2.5 border border-slate-300 rounded-xl" />
+                  </div>
+                  <div>
+                    <label className="block text-slate-600 font-semibold mb-1">사업자등록번호 (선택)</label>
+                    <input type="text" value={bizNumber} onChange={e => setBizNumber(e.target.value)} placeholder="000-00-00000" className="w-full p-2.5 border border-slate-300 rounded-xl font-mono" />
+                  </div>
+                </>
+              )}
+              <div>
+                <label className="block text-slate-600 font-semibold mb-1">이메일 주소</label>
+                <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="user@example.com" className="w-full p-2.5 border border-slate-300 rounded-xl" />
+              </div>
+              <div>
+                <label className="block text-slate-600 font-semibold mb-1">비밀번호</label>
+                <input type="password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="w-full p-2.5 border border-slate-300 rounded-xl" />
+              </div>
+              <button type="submit" className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs cursor-pointer transition-colors mt-2">
+                {mode === 'login' ? '로그인' : '회원가입 완료'}
+              </button>
+            </form>
+            <div className="mt-4 pt-3 border-t border-slate-200 text-center text-xs text-slate-500">
+              {mode === 'login' ? (
+                <div>아직 계정이 없으신가요? <button onClick={() => setMode('signup')} className="text-slate-900 font-bold hover:underline cursor-pointer">회원가입</button></div>
+              ) : (
+                <div>이미 계정이 있으신가요? <button onClick={() => setMode('login')} className="text-slate-900 font-bold hover:underline cursor-pointer">로그인</button></div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // 전자서명 모달 컴포넌트
+    function SigningModal({ invoice, onClose, onConfirm }) {
+      return (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3 pb-3 border-b border-slate-200">
+              <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">🔐</div>
+              <div>
+                <h3 className="font-bold text-slate-900 text-sm">공인인증서 전자서명 및 국세청 전송</h3>
+                <p className="text-[11px] text-slate-400">부가가치세법 규정에 따라 공인인증기관 PKI 전자서명을 수행합니다.</p>
+              </div>
+            </div>
+            <div className="bg-slate-50 p-4 rounded-xl text-xs space-y-1.5 border border-slate-200">
+              <div className="flex justify-between"><span className="text-slate-500">대상 문서:</span><span className="font-bold text-slate-800">{invoice.items[0]?.name}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500">합계 금액:</span><span className="font-mono font-bold text-slate-900">₩ {formatCurrency(invoice.grandTotal)}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500">공급받는자:</span><span>{invoice.buyer?.companyName}</span></div>
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <button onClick={onClose} className="px-4 py-2 border border-slate-300 rounded-lg text-xs font-semibold cursor-pointer">취소</button>
+              <button onClick={onConfirm} className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold cursor-pointer">인증서 전자서명 및 즉시 전송</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // 세금계산서 상세 서식 뷰어 모달
+    function InvoiceViewerModal({ invoice, onClose }) {
+      return (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div id="printable-modal" className="bg-white rounded-2xl max-w-3xl w-full p-6 md:p-8 my-8 shadow-2xl relative">
+            <div className="no-print flex justify-between items-center pb-4 border-b border-slate-200 mb-6">
+              <span className="px-2.5 py-1 text-xs font-bold rounded bg-slate-100 text-slate-800">국세청 별지 제11호 서식 표준</span>
+              <div className="flex gap-2">
+                <button onClick={() => window.print()} className="px-3.5 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-bold cursor-pointer">인쇄 / PDF 저장</button>
+                <button onClick={onClose} className="px-3.5 py-1.5 border border-slate-300 rounded-lg text-xs font-semibold cursor-pointer">닫기</button>
+              </div>
+            </div>
+            <div className="border-2 border-red-500 p-4 rounded-lg bg-white">
+              <div className="text-center pb-3 border-b-2 border-red-500">
+                <h1 className="text-2xl font-black tracking-widest text-red-600">세 금 계 산 서</h1>
+                <span className="text-xs text-red-500">({invoice.kind === 'sales' ? '공급자 보관용' : '공급받는자 보관용'})</span>
+              </div>
+              <div className="grid grid-cols-2 divide-x-2 divide-red-500 border-b-2 border-red-500 text-xs">
+                <div className="p-3 space-y-1">
+                  <div className="font-bold text-red-600 mb-1">[ 공 급 자 ]</div>
+                  <div><strong>등록번호:</strong> <span className="font-mono">{invoice.supplier?.bizNumber || '-'}</span></div>
+                  <div><strong>상호:</strong> {invoice.supplier?.companyName || '-'}</div>
+                  <div><strong>성명:</strong> {invoice.supplier?.ceoName || '-'}</div>
+                  <div><strong>주소:</strong> {invoice.supplier?.address || '-'}</div>
+                </div>
+                <div className="p-3 space-y-1">
+                  <div className="font-bold text-blue-600 mb-1">[ 공급받는자 ]</div>
+                  <div><strong>등록번호:</strong> <span className="font-mono">{invoice.buyer?.bizNumber || '-'}</span></div>
+                  <div><strong>상호:</strong> {invoice.buyer?.companyName || '-'}</div>
+                  <div><strong>성명:</strong> {invoice.buyer?.ceoName || '-'}</div>
+                  <div><strong>주소:</strong> {invoice.buyer?.address || '-'}</div>
+                </div>
+              </div>
+              <div className="p-3 bg-red-50 flex justify-between items-center text-xs font-bold text-red-900 mt-2 rounded">
+                <div>합계금액: <span className="text-base font-mono font-black ml-1 text-red-600">₩ {formatCurrency(invoice.grandTotal)}</span></div>
+                <div>공급가액: <span className="font-mono ml-1">₩ {formatCurrency(invoice.totalSupplyAmount)}</span></div>
+                <div>세액: <span className="font-mono ml-1">₩ {formatCurrency(invoice.totalTaxAmount)}</span></div>
+              </div>
+            </div>
           </div>
         </div>
       );
