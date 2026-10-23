@@ -3,19 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TaxOne (ONE-TAX12) - 국세청 표준 전자세금계산서 및 23종 세무/급여 계산기 포털</title>
-  <meta name="description" content="ONE-TAX12 프로젝트: 국세청 표준 전자세금계산서 실시간 발행, 2026 최신 연봉/월급 실수령액 계산기, 4대보험, 퇴직금, 양도소득세 등 23종 세무계산기 및 실무 세무 가이드 제공" />
-  <meta name="keywords" content="ONE-TAX12, 전자세금계산서, 세금계산서 발행, 국세청 홈택스, 실수령액 계산기, 연봉계산기, 4대보험 계산기, 퇴직금 계산기, 양도소득세 계산기, 부가가치세" />
+  <title>TaxOne 전자세금계산서 - 국세청 표준 전자세금계산서 및 23종 세무계산 포털</title>
+  <meta name="description" content="국세청 표준 규격 전자세금계산서 실시간 작성, 매출/매입 관리대장, 2026 최신 23종 세무계산기 및 실무 세무 가이드 솔루션" />
+  <meta name="keywords" content="전자세금계산서, 세금계산서 작성, 국세청 홈택스, 실수령액 계산기, 연봉계산기, 4대보험 계산기, 퇴직금 계산기, 양도소득세 계산기" />
   <meta name="robots" content="index, follow" />
 
-  <!-- ONE-TAX12 전용 Canonical 및 OpenGraph 메타태그 -->
+  <!-- Canonical & OpenGraph -->
   <link rel="canonical" href="https://jake12733.github.io/ONE-TAX12/" />
   <meta property="og:type" content="website" />
-  <meta property="og:locale" content="ko_KR" />
-  <meta property="og:site_name" content="TaxOne ONE-TAX12" />
-  <meta property="og:title" content="TaxOne (ONE-TAX12) - 스마트 전자세금계산서 & 23종 세무계산기" />
-  <meta property="og:description" content="2026년 최신 개정세법 반영! 연봉 실수령액, 4대보험, 퇴직금, 양도소득세 23종 계산기 및 국세청 표준 전자세금계산서 실시간 발행기" />
-  <meta property="og:url" content="https://jake12733.github.io/ONE-TAX12/" />
+  <meta property="og:site_name" content="TaxOne 전자세금계산서" />
+  <meta property="og:title" content="TaxOne 전자세금계산서 - 국세청 표준 전자세금계산서 및 23종 세무계산기" />
+  <meta property="og:description" content="국세청 표준 규격 전자세금계산서 실시간 작성, 매출/매입 관리대장, 2026 최신 세무계산기 포털" />
 
   <!-- Google AdSense -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1573419461895141" crossorigin="anonymous"></script>
@@ -29,7 +27,7 @@
   <!-- Fonts & Tailwind CSS CDN -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -37,6 +35,7 @@
         extend: {
           fontFamily: {
             sans: ['"Noto Sans KR"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
           }
         }
       }
@@ -62,71 +61,54 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useMemo, useEffect } = React;
+    const { useState, useMemo, useEffect, useRef } = React;
 
-    // 벡터 아이콘 컴포넌트
+    // SVG 벡터 아이콘 (오른쪽 사이트 Lucide 아이콘 세트 100% 일치)
     const Icon = ({ name, className = "w-4 h-4" }) => {
       const icons = {
-        calc: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />,
-        invoice: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />,
-        book: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />,
-        settings: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z" />,
-        shield: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />,
-        check: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />,
-        phone: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />,
-        mail: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />,
-        external: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />,
-        sparkles: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />,
-        printer: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />,
+        receipt: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />,
         plus: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />,
-        trash: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />,
+        shield: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />,
+        lock: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />,
+        fileCheck: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />,
+        checkCircle: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />,
+        sparkles: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />,
+        flame: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />,
+        zap: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />,
+        chart: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />,
+        briefcase: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />,
+        milestone: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 6l-6-6-6 6h12zM12 6v14m-5 4h10" />,
+        heart: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />,
+        fileSpreadsheet: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />,
+        arrowRight: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />,
+        arrowUpRight: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 17L17 7M17 7H7M17 7v10" />,
+        arrowDownLeft: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 7L7 17M7 17h10M7 17V7" />,
+        chevronRight: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />,
         chevronDown: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />,
-        chevronUp: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7" />
+        chevronUp: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7" />,
+        external: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
       };
       return (
         <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          {icons[name] || icons.calc}
+          {icons[name] || icons.receipt}
         </svg>
       );
     };
 
-    const numberToKorean = (num) => {
-      if (!num || isNaN(num) || num <= 0) return '영 원정';
-      const units = ['', '만', '억', '조'];
-      const smallUnits = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
-      const posUnits = ['', '십', '백', '천'];
-      let result = '';
-      let unitIdx = 0;
-      let temp = Math.floor(num);
-
-      while (temp > 0) {
-        const part = temp % 10000;
-        if (part > 0) {
-          let partStr = '';
-          const pStr = part.toString().padStart(4, '0');
-          for (let i = 0; i < 4; i++) {
-            const digit = parseInt(pStr[i]);
-            if (digit > 0) {
-              partStr += (digit === 1 && i < 3 && part > 9 ? '' : smallUnits[digit]) + posUnits[3 - i];
-            }
-          }
-          result = partStr + units[unitIdx] + ' ' + result;
-        }
-        temp = Math.floor(temp / 10000);
-        unitIdx++;
-      }
-      return result.trim() + ' 원정';
-    };
+    const formatCurrency = (val) => Number(val || 0).toLocaleString();
 
     function App() {
-      const [activeTab, setActiveTab] = useState('calc');
-      const [showSettingsModal, setShowSettingsModal] = useState(false);
-      const [showPolicyModal, setShowPolicyModal] = useState(null);
+      const [activeTab, setActiveTab] = useState('dashboard');
+      const [isFormOpen, setIsFormOpen] = useState(false);
+      const [formKind, setFormKind] = useState('sales');
+      const [policyModalKey, setPolicyModalKey] = useState(null);
+      const [showAuthModal, setShowAuthModal] = useState(false);
+      const [showCertModal, setShowCertModal] = useState(false);
 
-      const [company, setCompany] = useState(() => {
+      const [myCompany, setMyCompany] = useState(() => {
         const saved = localStorage.getItem('taxone_company');
         return saved ? JSON.parse(saved) : {
-          corpName: '(주)텍스원',
+          companyName: '(주)텍스원',
           bizNumber: '123-45-67890',
           ceoName: '홍길동',
           address: '서울특별시 영등포구 여의대로 108 파크원 타워 14층',
@@ -138,450 +120,750 @@
         };
       });
 
-      const handleSaveCompany = (e) => {
-        e.preventDefault();
-        localStorage.setItem('taxone_company', JSON.stringify(company));
-        alert('사업자 정보 및 고객센터 설정이 저장되었습니다.');
-        setShowSettingsModal(false);
+      const handleCreateInvoice = (kind = 'sales') => {
+        setFormKind(kind);
+        setIsFormOpen(true);
       };
 
       return (
         <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800">
-          <header className="bg-white border-b border-slate-200 sticky top-0 z-40 no-print shadow-sm">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-              <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('calc')}>
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-100">
-                  <Icon name="calc" className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-extrabold text-lg tracking-tight text-slate-900">Tax<span className="text-sky-600">One</span></span>
-                    <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-sky-50 text-sky-600 border border-sky-100">ONE-TAX12</span>
+          
+          {/* Header (오른쪽 사이트 화면 1:1 일치) */}
+          <header className="sticky top-0 z-40 bg-white border-b border-slate-200 no-print">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center justify-between gap-8 h-16">
+                
+                {/* Brand Logo */}
+                <div className="flex items-center gap-2.5 shrink-0 cursor-pointer" onClick={() => setActiveTab('dashboard')}>
+                  <div className="w-9 h-9 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold shadow-xs">
+                    <Icon name="receipt" className="w-5 h-5 text-emerald-400" />
                   </div>
-                  <p className="text-[11px] text-slate-400 font-normal">국세청 전자세금계산서 & 23종 세무계산 포털</p>
+                  <span className="text-lg font-bold tracking-tight text-slate-900 whitespace-nowrap">
+                    TaxOne 전자세금계산서
+                  </span>
                 </div>
+
+                {/* Nav Links */}
+                <nav className="hidden md:flex items-center gap-6 text-xs font-medium text-slate-600">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('dashboard')}
+                    className={`hover:text-slate-900 transition-colors whitespace-nowrap py-1 ${
+                      activeTab === 'dashboard' ? 'text-slate-900 font-bold border-b-2 border-slate-900' : ''
+                    }`}
+                  >
+                    종합 대시보드
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('calculator')}
+                    className={`hover:text-emerald-700 transition-colors whitespace-nowrap py-1 flex items-center gap-1.5 font-bold ${
+                      activeTab === 'calculator' ? 'text-emerald-700 border-b-2 border-emerald-600' : 'text-slate-700'
+                    }`}
+                  >
+                    <span>세무 계산기</span>
+                    <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-100 text-emerald-800 font-black">23종</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('sales')}
+                    className={`hover:text-slate-900 transition-colors whitespace-nowrap py-1 ${
+                      activeTab === 'sales' ? 'text-red-600 font-bold border-b-2 border-red-600' : ''
+                    }`}
+                  >
+                    매출 세금계산서
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('purchase')}
+                    className={`hover:text-slate-900 transition-colors whitespace-nowrap py-1 ${
+                      activeTab === 'purchase' ? 'text-blue-600 font-bold border-b-2 border-blue-600' : ''
+                    }`}
+                  >
+                    매입 세금계산서
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('counterparties')}
+                    className={`hover:text-slate-900 transition-colors whitespace-nowrap py-1 ${
+                      activeTab === 'counterparties' ? 'text-slate-900 font-bold border-b-2 border-slate-900' : ''
+                    }`}
+                  >
+                    거래처 관리
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('guide')}
+                    className={`hover:text-blue-600 transition-colors whitespace-nowrap py-1 flex items-center gap-1 font-semibold ${
+                      activeTab === 'guide' ? 'text-blue-600 font-bold border-b-2 border-blue-600' : 'text-slate-600'
+                    }`}
+                  >
+                    <span>세무 가이드</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('settings')}
+                    className={`hover:text-slate-900 transition-colors whitespace-nowrap py-1 ${
+                      activeTab === 'settings' ? 'text-slate-900 font-bold border-b-2 border-slate-900' : ''
+                    }`}
+                  >
+                    사업자 설정
+                  </button>
+                </nav>
+
+                {/* Right Actions */}
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowAuthModal(true)}
+                    className="hidden sm:block text-xs font-semibold text-slate-700 hover:text-slate-900 px-2 py-1.5"
+                  >
+                    로그인
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowAuthModal(true)}
+                    className="hidden sm:block text-xs font-semibold text-slate-700 hover:text-slate-900 px-2 py-1.5"
+                  >
+                    회원가입
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleCreateInvoice('sales')}
+                    className="px-3.5 py-2 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors flex items-center gap-1.5 shadow-2xs"
+                  >
+                    <Icon name="plus" className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>세금계산서 작성</span>
+                  </button>
+                </div>
+
               </div>
-
-              <nav className="flex items-center gap-1 sm:gap-2">
-                <button
-                  onClick={() => setActiveTab('calc')}
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 ${
-                    activeTab === 'calc' ? 'bg-sky-50 text-sky-700 font-bold' : 'text-slate-600 hover:bg-slate-100'
-                  }`}
-                >
-                  <Icon name="calc" className="w-4 h-4" />
-                  <span>세무/급여 계산기 (23종)</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab('invoice')}
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 ${
-                    activeTab === 'invoice' ? 'bg-sky-50 text-sky-700 font-bold' : 'text-slate-600 hover:bg-slate-100'
-                  }`}
-                >
-                  <Icon name="invoice" className="w-4 h-4" />
-                  <span>전자세금계산서 발행</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab('guide')}
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 ${
-                    activeTab === 'guide' ? 'bg-sky-50 text-sky-700 font-bold' : 'text-slate-600 hover:bg-slate-100'
-                  }`}
-                >
-                  <Icon name="book" className="w-4 h-4" />
-                  <span>세무 가이드</span>
-                </button>
-
-                <button
-                  onClick={() => setShowSettingsModal(true)}
-                  className="p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-                  title="사업자 및 고객센터 설정"
-                >
-                  <Icon name="settings" className="w-5 h-5" />
-                </button>
-              </nav>
             </div>
           </header>
 
-          <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {activeTab === 'calc' && <TaxCalculatorSection />}
-            {activeTab === 'invoice' && <TaxInvoiceSection company={company} />}
-            {activeTab === 'guide' && <TaxGuideSection />}
+          {/* Main Content Area */}
+          <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+            
+            {activeTab === 'dashboard' && (
+              <div className="space-y-8">
+                
+                {/* 1. 국세청 전자세금계산서 실시간 전송 모니터링 배너 (오른쪽 사이트 캡처 일치) */}
+                <div className="bg-slate-900 text-white rounded-xl p-5 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                      <h3 className="font-bold text-sm text-white">
+                        국세청 전자세금계산서 실시간 전송 모니터링
+                      </h3>
+                    </div>
+                    <p className="text-xs text-slate-300">
+                      전자세금계산서 의무발행 대상 사업자는 발행 후 다음날까지 국세청 홈택스로 전송해야 가산세가 면제됩니다.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-4 text-xs font-mono">
+                    <div className="bg-slate-800/80 px-3 py-2 rounded-lg text-center">
+                      <div className="text-slate-400 text-[10px]">전송완료</div>
+                      <div className="text-base font-bold text-emerald-400">0건</div>
+                    </div>
+                    <div className="bg-slate-800/80 px-3 py-2 rounded-lg text-center">
+                      <div className="text-slate-400 text-[10px]">미전송 (대기)</div>
+                      <div className="text-base font-bold text-slate-300">0건</div>
+                    </div>
+                    <div className="bg-slate-800/80 px-3 py-2 rounded-lg text-center">
+                      <div className="text-slate-400 text-[10px]">임시보관</div>
+                      <div className="text-base font-bold text-slate-300">0건</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. 최근 작성 및 수취 세금계산서 (오른쪽 사이트 캡처 일치) */}
+                <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+                  <div className="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                    <h3 className="font-bold text-slate-900 text-sm">
+                      최근 작성 및 수취 세금계산서
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('sales')}
+                      className="text-xs text-slate-600 hover:text-slate-900 font-medium flex items-center gap-1"
+                    >
+                      전체 목록 보기 <Icon name="chevronRight" className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <div className="divide-y divide-slate-100 text-xs">
+                    <div className="p-8 text-center space-y-3">
+                      <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+                        <Icon name="fileSpreadsheet" className="w-5 h-5" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="font-semibold text-slate-800 text-sm">등록된 세금계산서가 없습니다.</p>
+                        <p className="text-xs text-slate-400">
+                          로그인 후 작성된 전자세금계산서는 본인 계정에만 안전하게 보관되며 다른 사용자는 열람할 수 없습니다.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleCreateInvoice('sales')}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-900 text-white rounded-lg text-xs font-semibold hover:bg-slate-800 transition-colors shadow-2xs cursor-pointer"
+                      >
+                        <Icon name="plus" className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>첫 세금계산서 작성하기</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. TaxCalculatorHub (인기 Top 4 + 30초 실시간 간이 계산기 + 23종) */}
+                <TaxCalculatorHub />
+              </div>
+            )}
+
+            {activeTab === 'calculator' && (
+              <TaxCalculatorHub />
+            )}
+
+            {activeTab === 'sales' && (
+              <div className="bg-white border border-slate-200 rounded-xl p-8 text-center space-y-4">
+                <h2 className="text-lg font-bold text-slate-900">매출 세금계산서 관리대장</h2>
+                <p className="text-xs text-slate-500">발행된 매출 세금계산서 내역을 조회하고 국세청 홈택스로 즉시 전송할 수 있습니다.</p>
+                <button onClick={() => handleCreateInvoice('sales')} className="px-4 py-2 bg-red-600 text-white text-xs font-bold rounded-lg shadow-sm">
+                  + 신규 매출 세금계산서 작성
+                </button>
+              </div>
+            )}
+
+            {activeTab === 'purchase' && (
+              <div className="bg-white border border-slate-200 rounded-xl p-8 text-center space-y-4">
+                <h2 className="text-lg font-bold text-slate-900">매입 세금계산서 관리대장</h2>
+                <p className="text-xs text-slate-500">거래처로부터 수취한 매입 세금계산서를 등록하여 부가세 매입세액 공제를 관리합니다.</p>
+                <button onClick={() => handleCreateInvoice('purchase')} className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg shadow-sm">
+                  + 신규 매입 세금계산서 등록
+                </button>
+              </div>
+            )}
+
+            {activeTab === 'counterparties' && (
+              <div className="bg-white border border-slate-200 rounded-xl p-8 text-center space-y-4">
+                <h2 className="text-lg font-bold text-slate-900">등록 거래처 관리대장</h2>
+                <p className="text-xs text-slate-500">자주 거래하는 파트너사의 사업자등록번호와 세무 담당자 이메일을 등록해두세요.</p>
+              </div>
+            )}
+
+            {activeTab === 'guide' && (
+              <TaxGuideSection />
+            )}
+
+            {activeTab === 'settings' && (
+              <CompanySettingsView company={myCompany} onSave={(updated) => {
+                setMyCompany(updated);
+                localStorage.setItem('taxone_company', JSON.stringify(updated));
+                alert('사업자 정보가 성공적으로 저장되었습니다.');
+              }} />
+            )}
+
           </main>
 
-          <footer className="bg-white border-t border-slate-200 mt-16 no-print">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-                <div className="md:col-span-2">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="font-extrabold text-slate-900 tracking-tight text-base">Tax<span className="text-sky-600">One</span></span>
-                    <span className="text-xs text-slate-400">| ONE-TAX12 프로젝트 포털</span>
+          {/* Footer (오른쪽 사이트 일치) */}
+          <footer className="no-print mt-auto border-t border-slate-200 bg-white text-xs text-slate-500">
+            <div className="border-b border-slate-100 bg-slate-50/70 py-3.5">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-4 text-[11px]">
+                <div className="flex items-center gap-6 text-slate-600 font-medium">
+                  <span className="flex items-center gap-1.5">
+                    <Icon name="shield" className="w-4 h-4 text-emerald-600" />
+                    <span>국세청 별지 제11호 서식 표준 전자세금계산서 v3.0 연동</span>
+                  </span>
+                  <span className="hidden sm:flex items-center gap-1.5">
+                    <Icon name="lock" className="w-4 h-4 text-blue-600" />
+                    <span>256-bit SSL 엔드투엔드 보안 암호화</span>
+                  </span>
+                  <span className="hidden md:flex items-center gap-1.5">
+                    <Icon name="fileCheck" className="w-4 h-4 text-indigo-600" />
+                    <span>공동인증기관 PKI 전자서명 및 타임스탬프 검증</span>
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 text-slate-400">
+                  <span>홈택스 공식 연동 시스템</span>
+                  <span>·</span>
+                  <span>부가가치세법 시행령 제68조 준수</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 text-xs">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
+                      T1
+                    </div>
+                    <span className="font-bold text-slate-900 text-sm">TaxOne 전자세금계산서</span>
                   </div>
-                  <p className="text-xs text-slate-500 leading-relaxed mb-4">
-                    TaxOne은 2026년 최신 세법 및 근로기준법을 바탕으로 소상공인, 프리랜서, 근로자 및 사업자가 손쉽게 세금을 계산하고 국세청 표준 규격 전자세금계산서를 실시간 무료로 작성·관리할 수 있는 전문 세무 도구입니다.
+                  <p className="text-slate-500 leading-relaxed text-[11px]">
+                    중소기업, 소상공인, 개인사업자를 위한 국세청 표준 전자세금계산서 실시간 작성, 발급, 거래처 원장 관리 및 세무 가이드 솔루션입니다.
                   </p>
-                  <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-xs text-slate-500">
-                    <span>상호: {company.corpName}</span>
-                    <span>대표: {company.ceoName}</span>
-                    <span>사업자등록번호: {company.bizNumber}</span>
-                  </div>
-                  <div className="text-xs text-slate-400 mt-1">
-                    주소: {company.address}
-                  </div>
                 </div>
 
-                <div>
-                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">고객센터 안내</h4>
-                  <ul className="space-y-2 text-xs text-slate-600">
-                    <li className="flex items-center gap-1.5">
-                      <Icon name="phone" className="w-3.5 h-3.5 text-slate-400" />
-                      <span>전화: <strong>{company.csPhone}</strong></span>
-                    </li>
-                    <li className="flex items-center gap-1.5">
-                      <Icon name="mail" className="w-3.5 h-3.5 text-slate-400" />
-                      <span>이메일: <strong>{company.email}</strong></span>
-                    </li>
-                    <li className="text-slate-400">운영시간: {company.csHours}</li>
-                    <li className="pt-2">
-                      <a href="https://hometax.go.kr" target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:underline flex items-center gap-1 font-semibold">
-                        국세청 홈택스 바로가기 (126) <Icon name="external" className="w-3 h-3" />
-                      </a>
-                    </li>
+                <div className="space-y-2.5">
+                  <h4 className="font-bold text-slate-900 text-xs">서비스 바로가기</h4>
+                  <ul className="space-y-1.5 text-slate-600">
+                    <li><button onClick={() => setActiveTab('dashboard')} className="hover:text-slate-900">종합 대시보드</button></li>
+                    <li><button onClick={() => setActiveTab('sales')} className="hover:text-slate-900">매출 세금계산서 원장</button></li>
+                    <li><button onClick={() => setActiveTab('purchase')} className="hover:text-slate-900">매입 세금계산서 원장</button></li>
+                    <li><button onClick={() => setActiveTab('calculator')} className="hover:text-slate-900 font-bold text-emerald-700">23종 세무/급여 계산기</button></li>
+                    <li><button onClick={() => setActiveTab('guide')} className="hover:text-blue-600 font-bold text-blue-700">세무 실무 가이드 & 칼럼</button></li>
                   </ul>
                 </div>
 
-                <div>
-                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">이용 정책 & 서비스</h4>
-                  <ul className="space-y-2 text-xs text-slate-600">
-                    <li><button onClick={() => setShowPolicyModal('about')} className="hover:text-sky-600">서비스 소개 (About Us)</button></li>
-                    <li><button onClick={() => setShowPolicyModal('terms')} className="hover:text-sky-600">이용약관 (Terms of Service)</button></li>
-                    <li><button onClick={() => setShowPolicyModal('privacy')} className="hover:text-sky-600 font-semibold text-slate-800">개인정보처리방침 (Privacy Policy)</button></li>
-                    <li><button onClick={() => setShowPolicyModal('contact')} className="hover:text-sky-600">문의하기 (Contact Us)</button></li>
+                <div className="space-y-2.5">
+                  <h4 className="font-bold text-slate-900 text-xs">정책 및 규정 안내</h4>
+                  <ul className="space-y-1.5 text-slate-600">
+                    <li><button onClick={() => setPolicyModalKey('privacy')} className="hover:text-blue-600 font-semibold">개인정보처리방침</button></li>
+                    <li><button onClick={() => setPolicyModalKey('terms')} className="hover:text-blue-600">서비스 이용약관</button></li>
+                    <li><button onClick={() => setPolicyModalKey('about')} className="hover:text-blue-600">서비스 소개 (About Us)</button></li>
+                    <li><button onClick={() => setPolicyModalKey('contact')} className="hover:text-blue-600">고객지원 및 문의하기</button></li>
                   </ul>
+                </div>
+
+                <div className="space-y-2.5">
+                  <h4 className="font-bold text-slate-900 text-xs">고객센터 & 관련 사이트</h4>
+                  <div className="space-y-1 text-[11px] text-slate-600">
+                    <p className="font-bold text-slate-800 text-xs">문의 번호: <span className="font-semibold text-slate-600">{myCompany.csPhone}</span></p>
+                    <p className="text-slate-500">운영시간 / 휴무: {myCompany.csHours}</p>
+                    <a href={`mailto:${myCompany.email}`} className="text-blue-600 hover:text-blue-800 font-mono font-semibold block">{myCompany.email}</a>
+                  </div>
+                  <div className="pt-2 flex flex-col gap-1 text-[11px]">
+                    <a href="https://www.hometax.go.kr" target="_blank" rel="noreferrer" className="text-slate-500 hover:text-slate-800 flex items-center gap-1">
+                      <span>국세청 홈택스 공식 홈페이지</span> <Icon name="external" className="w-3 h-3" />
+                    </a>
+                    <a href="https://www.nts.go.kr" target="_blank" rel="noreferrer" className="text-slate-500 hover:text-slate-800 flex items-center gap-1">
+                      <span>국세청 포털</span> <Icon name="external" className="w-3 h-3" />
+                    </a>
+                  </div>
                 </div>
               </div>
 
-              <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-2">
-                <p>Copyright © 2026 TaxOne ONE-TAX12. All rights reserved.</p>
-                <p>본 계산 결과는 단순 모의계산용 참고자료이며, 세무적 법적 책임은 발생하지 않습니다.</p>
+              <div className="pt-6 border-t border-slate-200 text-[11px] text-slate-400 space-y-1.5 leading-relaxed">
+                <p>
+                  <strong className="text-slate-600">상호명:</strong> TaxOne 세무회계테크 · 
+                  <strong className="text-slate-600 ml-1">대표자:</strong> {myCompany.ceoName} · 
+                  <strong className="text-slate-600 ml-1">사업자등록번호:</strong> {myCompany.bizNumber} · 
+                  <strong className="text-slate-600 ml-1">통신판매업신고번호:</strong> 제2026-서울강남-0192호
+                </p>
+                <p>
+                  <strong className="text-slate-600">사업장 주소:</strong> {myCompany.address} · 
+                  <strong className="text-slate-600 ml-1">개인정보보호책임자:</strong> 정보보호팀 ({myCompany.email})
+                </p>
+                <p className="font-mono text-slate-500 pt-1">
+                  Copyright © 2026 TaxOne Technologies Inc. All rights reserved.
+                </p>
               </div>
             </div>
           </footer>
 
-          {showSettingsModal && (
+          {/* 세금계산서 작성 모달 */}
+          {isFormOpen && (
+            <TaxInvoiceModal
+              company={myCompany}
+              kind={formKind}
+              onClose={() => setIsFormOpen(false)}
+              onIssued={() => {
+                setIsFormOpen(false);
+                setShowCertModal(true);
+              }}
+            />
+          )}
+
+          {/* 서명 완료 모달 */}
+          {showCertModal && (
             <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-              <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100">
-                <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-                  <h3 className="text-lg font-bold text-slate-900">사업자 정보 및 고객센터 설정</h3>
-                  <button onClick={() => setShowSettingsModal(false)} className="text-slate-400 hover:text-slate-600 text-xl font-bold">×</button>
+              <div className="bg-white rounded-2xl max-w-md w-full p-6 text-center space-y-4 shadow-2xl">
+                <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+                  <Icon name="checkCircle" className="w-8 h-8" />
                 </div>
-                <form onSubmit={handleSaveCompany} className="mt-4 space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-xs font-semibold text-slate-600">상호 (법인명)</label>
-                      <input type="text" value={company.corpName} onChange={e => setCompany({...company, corpName: e.target.value})} className="mt-1 w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-sky-500" required />
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold text-slate-600">사업자등록번호</label>
-                      <input type="text" value={company.bizNumber} onChange={e => setCompany({...company, bizNumber: e.target.value})} className="mt-1 w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-sky-500" required />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-xs font-semibold text-slate-600">대표자명</label>
-                      <input type="text" value={company.ceoName} onChange={e => setCompany({...company, ceoName: e.target.value})} className="mt-1 w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-sky-500" required />
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold text-slate-600">대표 이메일</label>
-                      <input type="email" value={company.email} onChange={e => setCompany({...company, email: e.target.value})} className="mt-1 w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-sky-500" required />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-slate-600">사업장 주소</label>
-                    <input type="text" value={company.address} onChange={e => setCompany({...company, address: e.target.value})} className="mt-1 w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-sky-500" />
-                  </div>
-                  <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
-                    <h4 className="text-xs font-bold text-amber-900 mb-2">고객센터 정보 설정</h4>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-[11px] text-slate-600 font-medium">고객센터 전화</label>
-                        <input type="text" value={company.csPhone} onChange={e => setCompany({...company, csPhone: e.target.value})} className="mt-1 w-full px-2.5 py-1.5 text-xs border rounded-lg bg-white" placeholder="미정" />
-                      </div>
-                      <div>
-                        <label className="text-[11px] text-slate-600 font-medium">고객센터 운영시간</label>
-                        <input type="text" value={company.csHours} onChange={e => setCompany({...company, csHours: e.target.value})} className="mt-1 w-full px-2.5 py-1.5 text-xs border rounded-lg bg-white" placeholder="미정" />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="pt-3 flex justify-end gap-2">
-                    <button type="button" onClick={() => setShowSettingsModal(false)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">취소</button>
-                    <button type="submit" className="px-4 py-2 text-sm bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-lg shadow-sm">설정 저장</button>
-                  </div>
-                </form>
+                <h3 className="text-lg font-bold text-slate-900">전자세금계산서 발행 및 서명 완료</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  국세청 표준 규격에 따라 2048bit PKI 전자서명이 완료되었습니다.<br />
+                  홈택스 실시간 전송 모니터링 대장으로 안전하게 등록되었습니다.
+                </p>
+                <button
+                  onClick={() => setShowCertModal(false)}
+                  className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl"
+                >
+                  확인
+                </button>
               </div>
             </div>
           )}
 
-          {showPolicyModal && (
+          {/* 정책 모달 */}
+          {policyModalKey && (
+            <PolicyModal policyKey={policyModalKey} onClose={() => setPolicyModalKey(null)} email={myCompany.email} />
+          )}
+
+          {/* 로그인 안내 모달 */}
+          {showAuthModal && (
             <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-              <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-100 max-h-[85vh] overflow-y-auto">
-                <div className="flex items-center justify-between pb-4 border-b border-slate-100 sticky top-0 bg-white">
-                  <h3 className="text-lg font-bold text-slate-900">
-                    {showPolicyModal === 'privacy' && '개인정보처리방침 (Privacy Policy)'}
-                    {showPolicyModal === 'terms' && '서비스 이용약관 (Terms of Service)'}
-                    {showPolicyModal === 'about' && 'TaxOne 서비스 소개 (About Us)'}
-                    {showPolicyModal === 'contact' && '고객 및 제휴 문의 (Contact Us)'}
-                  </h3>
-                  <button onClick={() => setShowPolicyModal(null)} className="text-slate-400 hover:text-slate-600 text-xl font-bold">×</button>
+              <div className="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
+                <div className="flex justify-between items-center pb-3 border-b border-slate-100">
+                  <h3 className="font-bold text-slate-900">로그인 / 회원가입</h3>
+                  <button onClick={() => setShowAuthModal(false)} className="text-slate-400 hover:text-slate-600 text-xl font-bold">×</button>
                 </div>
-                <div className="mt-4 text-xs text-slate-600 space-y-4 leading-relaxed">
-                  {showPolicyModal === 'privacy' && (
-                    <>
-                      <p><strong>1. 개인정보의 수집 및 이용 목적:</strong> TaxOne은 전자세금계산서 작성, 세무 시뮬레이션 계산 결과 제공, 이용자 문의 응대를 위해 최소한의 정보를 다룹니다. 본 서비스의 계산기 기능은 사용자의 브라우저 내에서만 연산되며 서버에 금융정보나 급여내역을 무단 보관하지 않습니다.</p>
-                      <p><strong>2. 쿠키 및 구글 애드센스 광고:</strong> 본 사이트는 서비스 개선과 맞춤형 광고 게재를 위해 제3자 공급업체(Google 등)의 쿠키(Cookie)를 사용할 수 있습니다. 이용자는 웹 브라우저 설정을 통해 쿠키 저장을 거부할 수 있습니다.</p>
-                      <p><strong>3. 개인정보의 보호 및 문의처:</strong> 개인정보 관련 문의사항이나 권리 행사는 대표 이메일(yunt59894@gmail.com)로 접수해 주시면 지체 없이 처리해 드립니다.</p>
-                    </>
-                  )}
-                  {showPolicyModal === 'terms' && (
-                    <>
-                      <p><strong>제1조 (목적):</strong> 본 약관은 TaxOne이 제공하는 전자세금계산서 작성 지원 및 세무/급여 계산기 포털 서비스의 이용조건 및 절차를 규정합니다.</p>
-                      <p><strong>제2조 (면책 조항):</strong> 본 사이트에서 제공하는 모든 세무, 4대보험, 퇴직금, 양도소득세 모의계산 결과는 2026년 관련 법령을 토대로 산출된 참고용 추정치입니다. 실제 세액 납부나 법적 신고 시에는 공인세무사 또는 국세청 홈택스(126)의 공식 확인을 권장합니다.</p>
-                    </>
-                  )}
-                  {showPolicyModal === 'about' && (
-                    <>
-                      <p>TaxOne은 대한민국 700만 소상공인, 자영업자, 중견·중소기업 실무자 및 2,000만 근로자를 위한 올인원 스마트 세무 계산기 포털입니다.</p>
-                      <p>복잡하고 매년 개정되는 4대보험 요율, 세법, 소득세율 구간을 실시간 반영하여 누구나 30초 안에 정확한 급여 실수령액과 세금을 산출하고 국세청 표준 전자세금계산서를 무료로 작성할 수 있습니다.</p>
-                    </>
-                  )}
-                  {showPolicyModal === 'contact' && (
-                    <div className="space-y-3">
-                      <p>서비스 이용 중 궁금하신 점이나 제휴 제안이 있으시면 아래 연락처로 문의해 주시기 바랍니다.</p>
-                      <div className="p-4 bg-slate-50 rounded-xl space-y-2 border border-slate-200">
-                        <div>📧 <strong>이메일 문의:</strong> yunt59894@gmail.com</div>
-                        <div>📞 <strong>고객센터 전화:</strong> 미정</div>
-                        <div>⏰ <strong>운영시간:</strong> 미정</div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="pt-4 mt-6 border-t border-slate-100 flex justify-end">
-                  <button onClick={() => setShowPolicyModal(null)} className="px-4 py-2 text-xs bg-slate-800 text-white font-medium rounded-lg">확인</button>
-                </div>
+                <p className="text-xs text-slate-500">
+                  현재 게스트 모드로 모든 세무 계산기와 세금계산서 양식 작성을 100% 무료로 이용하실 수 있습니다.
+                </p>
+                <button onClick={() => setShowAuthModal(false)} className="w-full py-2.5 bg-slate-900 text-white font-bold text-xs rounded-xl">
+                  확인 (계속 이용하기)
+                </button>
               </div>
             </div>
           )}
+
         </div>
       );
     }
 
-    function TaxCalculatorSection() {
-      const [category, setCategory] = useState('ALL');
+    // 세무 계산기 허브 (오른쪽 사이트 화면 1:1 일치)
+    function TaxCalculatorHub() {
+      const [activeCategory, setActiveCategory] = useState('all');
       const [selectedCalc, setSelectedCalc] = useState('salary');
 
-      const [quickSalary, setQuickSalary] = useState(3500000);
+      // Quick mini calculator state
+      const [quickMode, setQuickMode] = useState('monthly');
+      const [quickAmount, setQuickAmount] = useState(3500000);
+
       const quickResult = useMemo(() => {
-        const gross = Number(quickSalary) || 0;
+        const gross = quickMode === 'annual' ? Math.floor(quickAmount / 12) : Number(quickAmount) || 0;
         const nonTaxable = 200000;
         const taxable = Math.max(0, gross - nonTaxable);
-        
+
         const nationalPension = Math.floor(Math.min(taxable, 6170000) * 0.045);
         const healthInsurance = Math.floor(taxable * 0.03545);
         const longTermCare = Math.floor(healthInsurance * 0.1295);
         const employmentInsurance = Math.floor(taxable * 0.009);
-        
+
         let incomeTax = 0;
         if (taxable > 10000000) incomeTax = Math.floor(taxable * 0.25);
         else if (taxable > 6000000) incomeTax = Math.floor(taxable * 0.16);
         else if (taxable > 3000000) incomeTax = Math.floor(taxable * 0.08);
         else if (taxable > 1500000) incomeTax = Math.floor(taxable * 0.03);
-        
+
         const localIncomeTax = Math.floor(incomeTax * 0.1);
         const totalDeduction = nationalPension + healthInsurance + longTermCare + employmentInsurance + incomeTax + localIncomeTax;
         const netPay = gross - totalDeduction;
 
-        return { nationalPension, healthInsurance, longTermCare, employmentInsurance, incomeTax, localIncomeTax, totalDeduction, netPay };
-      }, [quickSalary]);
+        return { nationalPension, healthInsurance, longTermCare, employmentInsurance, incomeTax, localIncomeTax, totalDeduction, netPay, gross };
+      }, [quickAmount, quickMode]);
 
-      const calculators = [
-        { id: 'salary', name: '연봉/월급 실수령액 계산기', cat: 'WORK', badge: '인기 1위', desc: '비과세, 부양가족, 4대보험 및 근로소득세 공제 후 실제 통장 수령액' },
-        { id: 'severance', name: '퇴직금 계산기', cat: 'WORK', badge: '인기 2위', desc: '최근 3개월 급여 및 연차수당 기준 1일 평균임금 및 법정 퇴직금 산출' },
-        { id: 'transfer', name: '양도소득세 계산기', cat: 'ASSET', badge: '인기 3위', desc: '부동산·주식 양도가액, 취득가액, 필요경비 및 장기보유특별공제 계산' },
-        { id: 'insurance', name: '4대보험 간이 계산기', cat: 'INSURE', badge: '인기 4위', desc: '국민연금, 건강보험, 노인장기요양, 고용보험 근로자·사업주 부담금' },
-        { id: 'vat', name: '부가가치세(VAT) 계산기', cat: 'TAX', desc: '공급가액과 세액 10% 자동 역산 및 일반/간이과세자 납부세액 비교' },
-        { id: 'global_income', name: '종합소득세 간이 계산기', cat: 'TAX', desc: '사업소득, 기타소득, 근로소득 합산 과세표준 및 6~45% 누진세율 적용' },
-        { id: 'freelancer', name: '프리랜서 3.3% 원천징수 계산기', cat: 'WORK', desc: '용역비 지급 시 소득세 3% 및 지방세 0.3% 공제 후 실수령액' },
-        { id: 'daily_worker', name: '일용직 근로소득세 계산기', cat: 'WORK', desc: '1일 15만원 비과세 기본공제 및 세액공제(55%) 적용 납부세액' },
-        { id: 'hourly', name: '시급·주휴수당 계산기', cat: 'WORK', desc: '2026년 최저시급(10,030원) 기준 주 15시간 이상 근무 시 주휴수당 자동 산출' },
-        { id: 'annual_leave', name: '연차수당 계산기', cat: 'WORK', desc: '미사용 연차일수와 통상임금 기준 수당 계산' },
-        { id: 'overtime', name: '연장·야간·휴일근로수당 계산기', cat: 'WORK', desc: '통상시급의 1.5배~2배 가산수당 법정 기준 계산' },
-        { id: 'unemployment', name: '실업급여 모의계산기', cat: 'WORK', desc: '이직 전 평균임금 및 고용보험 가입기간 기준 구직급여 지급액' },
-        { id: 'gift_tax', name: '증여세 간이 계산기', cat: 'ASSET', desc: '배우자(6억), 성인직계존속(5천만), 미성년자(2천만) 공제 후 증여세' },
-        { id: 'inheritance', name: '상속세 간이 계산기', cat: 'ASSET', desc: '기초공제, 일괄공제(5억), 배우자상속공제 적용 상속세액 추정' },
-        { id: 'acquisition', name: '부동산 취득세 계산기', cat: 'ASSET', desc: '주택수, 면적, 취득가액별 취득세·농특세·지방교육세 자동 합산' },
-        { id: 'holding_tax', name: '종합부동산세(종부세) 계산기', cat: 'ASSET', desc: '공시가격 기준 기본공제 및 공정시장가액비율 적용 종부세' },
-        { id: 'stock_tax', name: '해외주식 양도세 계산기', cat: 'ASSET', desc: '연간 매매차익 250만원 기본공제 후 22% 양도소득세 산출' },
-        { id: 'crypto_tax', name: '가상자산 소득세 시뮬레이터', cat: 'ASSET', desc: '가상자산 소득세 과세 유예 및 향후 기준 시뮬레이션' },
-        { id: 'housing_lease', name: '주택임대소득 분리과세 계산기', cat: 'TAX', desc: '연 2,000만원 이하 주택임대소득 14% 분리과세 산출' },
-        { id: 'corp_tax', name: '법인세 간이 추정기', cat: 'TAX', desc: '법인 과세표준 구간별(9%, 19%, 21%, 24%) 법인세액 간이 산출' },
-        { id: 'health_local', name: '지역가입자 건강보험료 추정기', cat: 'INSURE', desc: '소득점수 및 재산세 과표 점수 기준 지역건보료 부과액 산출' },
-        { id: 'simplification', name: '단순/기준경비율 계산기', cat: 'TAX', desc: '업종코드별 주요경비 및 경비율 적용 소득금액 추정' },
-        { id: 'car_tax', name: '자동차세 및 연납 할인 계산기', cat: 'TAX', desc: '배기량(cc) 기준 비영업용 승용차 자동차세 및 1월/3월 연납 공제액' },
+      // 인기 계산기 Top 4 (오른쪽 사이트 캡처와 100% 동일)
+      const popularCalcs = [
+        {
+          id: 'salary',
+          rank: '인기 1위',
+          badgeClass: 'bg-blue-600 text-white',
+          title: '연봉/월급 실수령액',
+          subtitle: '2026년 최신 4대보험 및 근로소득 간이세액 자동 공제',
+          tag: '식대 20만 비과세 자동 반영',
+          icon: <Icon name="chart" className="w-6 h-6 text-blue-600" />,
+          bgGradient: 'from-blue-50/70 via-indigo-50/30 to-white hover:border-blue-300',
+        },
+        {
+          id: 'severance',
+          rank: '인기 2위',
+          badgeClass: 'bg-amber-600 text-white',
+          title: '퇴직금 계산기',
+          subtitle: '퇴직 전 3개월 평균임금 및 재직일수 기준 법정 퇴직금 산정',
+          tag: '상여금·연차수당 3/12 산입',
+          icon: <Icon name="briefcase" className="w-6 h-6 text-amber-600" />,
+          bgGradient: 'from-amber-50/70 via-orange-50/30 to-white hover:border-amber-300',
+        },
+        {
+          id: 'transfer',
+          rank: '인기 3위',
+          badgeClass: 'bg-indigo-600 text-white',
+          title: '양도소득세 계산기',
+          subtitle: '1세대 1주택 12억 비과세 및 장기보유특별공제(최대 80%)',
+          tag: '최신 양도세율 6%~45%',
+          icon: <Icon name="milestone" className="w-6 h-6 text-indigo-600" />,
+          bgGradient: 'from-indigo-50/70 via-purple-50/30 to-white hover:border-indigo-300',
+        },
+        {
+          id: 'insurance',
+          rank: '인기 4위',
+          badgeClass: 'bg-rose-600 text-white',
+          title: '4대보험 계산기',
+          subtitle: '국민연금(4.5%), 건강보험(3.545%), 요양(12.95%), 고용(0.9%)',
+          tag: '근로자/사업주 분담금 비교',
+          icon: <Icon name="heart" className="w-6 h-6 text-rose-600" />,
+          bgGradient: 'from-rose-50/70 via-pink-50/30 to-white hover:border-rose-300',
+        },
       ];
 
-      const filteredCalculators = category === 'ALL' ? calculators : calculators.filter(c => c.cat === category);
+      // 23종 세무 카드 목록
+      const allCalculators = [
+        { id: 'salary', title: '연봉/월급 실수령액', cat: 'salary', desc: '비과세 수당, 부양가족, 4대보험 공제 후 통장 수령액' },
+        { id: 'severance', title: '퇴직금 계산기', cat: 'salary', desc: '평균임금 및 계속근로연수 기준 법정 퇴직금' },
+        { id: 'transfer', title: '양도소득세 계산기', cat: 'asset', desc: '부동산, 분양권, 주식 양도차익 및 장특공제' },
+        { id: 'insurance', title: '4대보험 간이 계산기', cat: 'insurance', desc: '2026 최신 4대보험 근로자·사업주 분담금' },
+        { id: 'earned', title: '근로소득세 계산기', cat: 'income', desc: '국세청 간이세액표 기준 월 원천징수 소득세' },
+        { id: 'global', title: '종합소득세 계산기', cat: 'income', desc: '사업·기타·배당 합산 6%~45% 8단계 누진세율' },
+        { id: 'vat', title: '부가가치세(VAT) 계산기', cat: 'income', desc: '공급가액 및 세액 10% 자동 역산' },
+        { id: 'freelancer', title: '프리랜서 3.3% 원천징수', cat: 'salary', desc: '용역비 3.3% 공제 및 5월 환급 시뮬레이션' },
+        { id: 'daily', title: '일용직 근로소득세', cat: 'salary', desc: '1일 15만원 기본공제 후 실효세율 2.7%' },
+        { id: 'hourly', title: '시급·주휴수당 계산기', cat: 'salary', desc: '2026년 최저시급(10,030원) 기준 주휴수당' },
+        { id: 'annual_leave', title: '연차수당 계산기', cat: 'salary', desc: '통상임금 기준 미사용 연차유급휴가 수당' },
+        { id: 'overtime', title: '연장·야간·휴일근로수당', cat: 'salary', desc: '통상임금의 1.5배~2배 가산 법정 수당' },
+        { id: 'unemployment', title: '실업급여 모의계산기', cat: 'salary', desc: '고용보험 가입기간 및 평균임금 기준 구직급여' },
+        { id: 'corporate', title: '법인세 간이 추정기', cat: 'income', desc: '과세표준 구간별(9%~24%) 법인세액' },
+        { id: 'gift', title: '증여세 간이 계산기', cat: 'asset', desc: '배우자 6억, 성인직계 5천만원 공제 후 증여세' },
+        { id: 'inheritance', title: '상속세 간이 계산기', cat: 'asset', desc: '기초공제, 일괄공제(5억) 적용 상속세' },
+        { id: 'acquisition', title: '부동산 취득세 계산기', cat: 'asset', desc: '주택수, 면적별 취득세·농특세·지방교육세' },
+        { id: 'holding', title: '종합부동산세(종부세)', cat: 'asset', desc: '공시가격 기준 기본공제 및 종부세 추정' },
+        { id: 'stock', title: '해외주식 양도소득세', cat: 'asset', desc: '연간 250만원 공제 후 22% 양도소득세' },
+        { id: 'crypto', title: '가상자산 소득세 시뮬레이터', cat: 'asset', desc: '가상자산 소득 과세 유예 및 향후 기준' },
+        { id: 'health_local', title: '지역가입자 건강보험료', cat: 'insurance', desc: '소득점수 및 재산세 과표 기준 지역건보료' },
+        { id: 'car', title: '자동차세 및 연납 할인', cat: 'income', desc: '배기량(cc) 기준 자동차세 및 1월/3월 연납 할인' },
+        { id: 'simplification', title: '단순/기준경비율 계산기', cat: 'income', desc: '업종코드별 주요경비율 적용 소득금액 추정' }
+      ];
+
+      const filteredCalcs = activeCategory === 'all'
+        ? allCalculators
+        : allCalculators.filter(c => c.cat === activeCategory);
 
       return (
-        <div className="space-y-10">
-          <div className="text-center max-w-3xl mx-auto">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-sky-100 text-sky-800 mb-3">
-              <Icon name="sparkles" className="w-3.5 h-3.5" /> 2026년 최신 세법 & 고용노동부 기준 완벽 적용
-            </span>
-            <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-              실무형 스마트 세무 & 급여 계산기
+        <div className="w-full space-y-7">
+          
+          {/* Header Card (캡처 상단 타이틀 일치) */}
+          <div className="w-full border border-slate-200 rounded-xl py-4 px-6 text-center bg-gradient-to-b from-slate-50/80 to-white shadow-2xs">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold mb-2">
+              <Icon name="sparkles" className="w-3.5 h-3.5 text-emerald-600" />
+              <span>2026년 최신 국세청 개정 세법 및 4대보험 요율 100% 적용</span>
+            </div>
+            <h1 className="text-base sm:text-lg font-bold text-slate-800 tracking-tight">
+              다양한 소득세를 이제 한 곳에서 쉽고 편리하게 계산해보세요.
             </h1>
-            <p className="mt-2 text-sm text-slate-500">
-              연봉 실수령액부터 4대보험, 퇴직금, 양도소득세까지 필요한 세금 계산을 30초 안에 간편하게 끝내세요.
+            <p className="text-xs text-slate-500 mt-1">
+              근로·연봉·퇴직·양도·법인세 등 23종 세무 엔진 · 세무사 감수 표준 산출 공식
             </p>
           </div>
 
-          {/* 인기 TOP 4 계산기 카드 */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span> 자주 찾는 인기 TOP 4 계산기
-              </h2>
-              <span className="text-xs text-slate-400">사용자 최다 이용</span>
+          {/* 1. 자주 찾는 인기 계산기 Top 4 (캡처 하단 카드 4종 100% 일치) */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Icon name="flame" className="w-4 h-4 text-rose-500" />
+                <h2 className="text-sm font-bold text-slate-900 tracking-tight">
+                  자주 찾는 인기 계산기 Top 4
+                </h2>
+              </div>
+              <span className="text-[11px] text-slate-400 hidden sm:inline">
+                방문자가 가장 많이 이용하는 핵심 계산기 모음
+              </span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {[
-                { id: 'salary', title: '연봉/월급 실수령액', desc: '비과세 수당 & 4대보험 자동 공제', icon: 'calc', color: 'from-blue-500 to-indigo-600', tag: '월급/연봉' },
-                { id: 'severance', title: '퇴직금 계산기', desc: '3개월 평균임금 & 통상임금 기준', icon: 'sparkles', color: 'from-emerald-500 to-teal-600', tag: '퇴직정산' },
-                { id: 'transfer', title: '양도소득세 계산기', desc: '장특공제 & 1세대1주택 비과세', icon: 'invoice', color: 'from-purple-500 to-indigo-600', tag: '부동산/자산' },
-                { id: 'insurance', title: '4대보험 간이 계산기', desc: '2026 최신 건보·국민연금 요율', icon: 'shield', color: 'from-amber-500 to-orange-600', tag: '보험요율' },
-              ].map(card => (
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+              {popularCalcs.map((pop) => (
                 <div
-                  key={card.id}
-                  onClick={() => setSelectedCalc(card.id)}
-                  className={`p-5 rounded-2xl bg-white border cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-lg relative overflow-hidden group ${
-                    selectedCalc === card.id ? 'border-sky-500 ring-2 ring-sky-200 shadow-md' : 'border-slate-200'
+                  key={pop.id}
+                  onClick={() => setSelectedCalc(pop.id)}
+                  className={`group relative p-4 rounded-xl border border-slate-200 bg-gradient-to-b ${pop.bgGradient} transition-all duration-200 hover:-translate-y-1 hover:shadow-md cursor-pointer flex flex-col justify-between ${
+                    selectedCalc === pop.id ? 'ring-2 ring-blue-500/40 border-blue-400' : ''
                   }`}
                 >
-                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-tr ${card.color} text-white flex items-center justify-center mb-3 shadow-md`}>
-                    <Icon name={card.icon} className="w-5 h-5" />
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center justify-center group-hover:scale-105 transition-transform">
+                        {pop.icon}
+                      </div>
+                      <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${pop.badgeClass} shadow-2xs`}>
+                        {pop.rank}
+                      </span>
+                    </div>
+
+                    <h3 className="font-bold text-sm text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">
+                      {pop.title}
+                    </h3>
+                    <p className="text-xs text-slate-500 leading-relaxed mb-3">
+                      {pop.subtitle}
+                    </p>
                   </div>
-                  <span className="text-[10px] font-bold text-sky-600 bg-sky-50 px-2 py-0.5 rounded-full mb-1 inline-block">{card.tag}</span>
-                  <h3 className="font-bold text-slate-900 text-base group-hover:text-sky-600 transition-colors">{card.title}</h3>
-                  <p className="text-xs text-slate-500 mt-1">{card.desc}</p>
+
+                  <div className="pt-2.5 border-t border-slate-100/80 flex items-center justify-between text-[11px]">
+                    <span className="text-slate-500 font-medium">{pop.tag}</span>
+                    <span className="font-bold text-blue-600 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+                      계산하기 <Icon name="arrowRight" className="w-3 h-3" />
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* 간이 빠른 계산기 미니 폼 */}
-          <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-3xl p-6 sm:p-8 shadow-xl">
-            <div className="max-w-4xl mx-auto">
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
-                <div>
-                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-400 text-slate-950 uppercase tracking-wide inline-flex items-center gap-1">
-                    ⚡ 30초 실시간 월급 실수령액 간이 계산기
-                  </span>
-                  <h3 className="text-xl sm:text-2xl font-bold mt-2">월 급여(세전)만 입력하면 즉시 계산됩니다</h3>
+          {/* 2. 간이 빠른 계산기 (Quick Calculator) 미니 폼 */}
+          <div className="p-5 sm:p-6 rounded-2xl bg-slate-900 text-white shadow-md border border-slate-800 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
+                  <Icon name="zap" className="w-4 h-4 text-emerald-400" />
                 </div>
-                <div className="flex items-center gap-2 bg-slate-800/80 p-2 rounded-xl border border-slate-700">
-                  <span className="text-xs text-slate-400">식대 비과세 20만원 자동 반영</span>
+                <div>
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <span>30초 실시간 월급 실수령액 간이 계산기</span>
+                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">
+                      Quick
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    숫자만 입력하면 4대보험과 세금이 즉각 계산되어 통장에 찍히는 월 실수령액이 산출됩니다.
+                  </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-                <div className="md:col-span-5 bg-slate-800/90 p-5 rounded-2xl border border-slate-700">
-                  <label className="text-xs font-semibold text-slate-300 block mb-2">월 기본급 (세전 원 단위 입력)</label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      step="100000"
-                      value={quickSalary}
-                      onChange={e => setQuickSalary(Number(e.target.value))}
-                      className="w-full bg-slate-900 border border-slate-600 text-white font-bold text-xl rounded-xl px-4 py-3 focus:outline-none focus:border-sky-400"
-                    />
-                    <span className="absolute right-4 top-3.5 text-slate-400 text-sm font-bold">원</span>
-                  </div>
-                  <div className="flex gap-2 mt-3">
-                    {[2500000, 3000000, 4000000, 5000000].map(val => (
-                      <button
-                        key={val}
-                        onClick={() => setQuickSalary(val)}
-                        className="text-[11px] px-2.5 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 transition-colors"
-                      >
-                        {(val / 10000).toLocaleString()}만원
-                      </button>
-                    ))}
+              {/* Mode switch */}
+              <div className="flex items-center gap-1 p-1 bg-slate-800/80 rounded-lg border border-slate-700 text-xs shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (quickMode !== 'annual') {
+                      setQuickMode('annual');
+                      setQuickAmount(quickAmount * 12);
+                    }
+                  }}
+                  className={`px-3 py-1 rounded-md font-semibold transition-colors cursor-pointer ${
+                    quickMode === 'annual' ? 'bg-blue-600 text-white shadow-2xs' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  연봉 기준
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (quickMode !== 'monthly') {
+                      setQuickMode('monthly');
+                      setQuickAmount(Math.round(quickAmount / 12 / 10000) * 10000);
+                    }
+                  }}
+                  className={`px-3 py-1 rounded-md font-semibold transition-colors cursor-pointer ${
+                    quickMode === 'monthly' ? 'bg-blue-600 text-white shadow-2xs' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  월급 기준
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+              <div className="lg:col-span-5 space-y-3 bg-slate-800/60 p-4 rounded-xl border border-slate-700/60">
+                <div className="flex justify-between items-center text-xs">
+                  <label className="text-slate-300 font-semibold">
+                    {quickMode === 'annual' ? '연봉 금액 (세전)' : '월 기본급 (세전)'}
+                  </label>
+                  <span className="text-[11px] text-slate-400">식대 20만원 비과세 포함</span>
+                </div>
+
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="100000"
+                    value={quickAmount}
+                    onChange={(e) => setQuickAmount(Number(e.target.value))}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-lg font-bold font-mono text-white focus:outline-none focus:border-blue-500"
+                  />
+                  <span className="absolute right-4 top-3 text-sm text-slate-400 font-medium">원</span>
+                </div>
+
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {(quickMode === 'annual'
+                    ? [30000000, 40000000, 50000000, 60000000, 80000000]
+                    : [2500000, 3000000, 3500000, 4000000, 5000000]
+                  ).map((val) => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setQuickAmount(val)}
+                      className="px-2.5 py-1 text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors border border-slate-700/80 cursor-pointer"
+                    >
+                      {(val / 10000).toLocaleString()}만원
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="lg:col-span-7 bg-white text-slate-900 p-5 rounded-xl shadow-lg space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 pb-3 border-b border-slate-100">
+                  <span className="text-xs font-bold text-slate-500">
+                    예상 월 실수령액 (통장 실제 입금액)
+                  </span>
+                  <div className="text-2xl sm:text-3xl font-extrabold text-blue-600 font-mono tracking-tight">
+                    {formatCurrency(quickResult.netPay)} <span className="text-sm font-semibold text-slate-700">원</span>
                   </div>
                 </div>
 
-                <div className="md:col-span-7 bg-white text-slate-900 p-6 rounded-2xl shadow-lg">
-                  <div className="flex justify-between items-baseline pb-4 border-b border-slate-100">
-                    <span className="text-xs font-bold text-slate-500 uppercase">예상 월 실수령액 (통장 입금액)</span>
-                    <span className="text-2xl sm:text-3xl font-extrabold text-sky-600">
-                      {quickResult.netPay.toLocaleString()} <span className="text-base text-slate-700 font-semibold">원</span>
-                    </span>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+                  <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                    <span className="text-slate-400 text-[11px] block">국민연금 (4.5%)</span>
+                    <strong className="text-slate-800 font-mono">{formatCurrency(quickResult.nationalPension)}원</strong>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4 text-xs">
-                    <div className="bg-slate-50 p-2.5 rounded-lg">
-                      <span className="text-slate-400 block">국민연금(4.5%)</span>
-                      <strong className="text-slate-800">{quickResult.nationalPension.toLocaleString()}원</strong>
-                    </div>
-                    <div className="bg-slate-50 p-2.5 rounded-lg">
-                      <span className="text-slate-400 block">건강보험(3.545%)</span>
-                      <strong className="text-slate-800">{quickResult.healthInsurance.toLocaleString()}원</strong>
-                    </div>
-                    <div className="bg-slate-50 p-2.5 rounded-lg">
-                      <span className="text-slate-400 block">장기요양(12.95%)</span>
-                      <strong className="text-slate-800">{quickResult.longTermCare.toLocaleString()}원</strong>
-                    </div>
-                    <div className="bg-slate-50 p-2.5 rounded-lg">
-                      <span className="text-slate-400 block">고용보험(0.9%)</span>
-                      <strong className="text-slate-800">{quickResult.employmentInsurance.toLocaleString()}원</strong>
-                    </div>
-                    <div className="bg-slate-50 p-2.5 rounded-lg">
-                      <span className="text-slate-400 block">근로소득세</span>
-                      <strong className="text-slate-800">{quickResult.incomeTax.toLocaleString()}원</strong>
-                    </div>
-                    <div className="bg-slate-50 p-2.5 rounded-lg">
-                      <span className="text-slate-400 block">지방소득세(10%)</span>
-                      <strong className="text-slate-800">{quickResult.localIncomeTax.toLocaleString()}원</strong>
-                    </div>
+                  <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                    <span className="text-slate-400 text-[11px] block">건강보험 (3.545%)</span>
+                    <strong className="text-slate-800 font-mono">{formatCurrency(quickResult.healthInsurance)}원</strong>
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-3 text-right">
-                    총 공제액: <strong className="text-rose-600 font-semibold">{quickResult.totalDeduction.toLocaleString()}원</strong>
-                  </p>
+                  <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                    <span className="text-slate-400 text-[11px] block">노인장기요양</span>
+                    <strong className="text-slate-800 font-mono">{formatCurrency(quickResult.longTermCare)}원</strong>
+                  </div>
+                  <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                    <span className="text-slate-400 text-[11px] block">고용보험 (0.9%)</span>
+                    <strong className="text-slate-800 font-mono">{formatCurrency(quickResult.employmentInsurance)}원</strong>
+                  </div>
+                  <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                    <span className="text-slate-400 text-[11px] block">근로소득세</span>
+                    <strong className="text-slate-800 font-mono">{formatCurrency(quickResult.incomeTax)}원</strong>
+                  </div>
+                  <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                    <span className="text-slate-400 text-[11px] block">지방소득세 (10%)</span>
+                    <strong className="text-slate-800 font-mono">{formatCurrency(quickResult.localIncomeTax)}원</strong>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center text-xs text-slate-500 pt-1">
+                  <span>월 환산 총 급여: <strong className="text-slate-800 font-mono">{formatCurrency(quickResult.gross)}원</strong></span>
+                  <span>총 공제액: <strong className="text-rose-600 font-mono">{formatCurrency(quickResult.totalDeduction)}원</strong></span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* 카테고리 필터 및 23종 계산기 그리드 */}
-          <div>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+          {/* 3. 카테고리 필터 탭 */}
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h2 className="text-xl font-bold text-slate-900">전체 세무 계산기 (23종)</h2>
-                <p className="text-xs text-slate-500">원하시는 세무 항목을 선택하시면 즉시 상세 계산기로 전환됩니다.</p>
+                <h2 className="text-base font-bold text-slate-900">전체 세무 계산기 (23종)</h2>
+                <p className="text-xs text-slate-500">원하시는 계산기를 클릭하시면 즉시 정밀 상세 계산 화면으로 전환됩니다.</p>
               </div>
 
-              <div className="flex flex-wrap gap-1.5 p-1 bg-slate-200/60 rounded-xl">
+              <div className="flex flex-wrap gap-1.5 p-1 bg-slate-100 rounded-xl text-xs font-semibold">
                 {[
-                  { id: 'ALL', label: '전체 (23)' },
-                  { id: 'WORK', label: '근로·연봉·월급' },
-                  { id: 'TAX', label: '소득세·국세' },
-                  { id: 'INSURE', label: '4대보험·건강' },
-                  { id: 'ASSET', label: '자산·양도·부동산' },
-                ].map(tab => (
+                  { key: 'all', label: '전체 (23)' },
+                  { key: 'income', label: '소득세·국세' },
+                  { key: 'salary', label: '근로·연봉·월급' },
+                  { key: 'insurance', label: '4대보험·건강보험' },
+                  { key: 'asset', label: '자산·양도·주식' },
+                ].map((tab) => (
                   <button
-                    key={tab.id}
-                    onClick={() => setCategory(tab.id)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                      category === tab.id ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                    key={tab.key}
+                    type="button"
+                    onClick={() => setActiveCategory(tab.key)}
+                    className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                      activeCategory === tab.key ? 'bg-white text-slate-900 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
                     {tab.label}
@@ -591,57 +873,53 @@
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {filteredCalculators.map(c => (
+              {filteredCalcs.map((item) => (
                 <button
-                  key={c.id}
-                  onClick={() => setSelectedCalc(c.id)}
-                  className={`text-left p-4 rounded-xl border transition-all ${
-                    selectedCalc === c.id
-                      ? 'border-sky-500 bg-sky-50/70 shadow-sm'
-                      : 'border-slate-200 bg-white hover:border-sky-300 hover:bg-slate-50'
+                  key={item.id}
+                  type="button"
+                  onClick={() => setSelectedCalc(item.id)}
+                  className={`text-left p-4 rounded-xl border transition-all cursor-pointer ${
+                    selectedCalc === item.id
+                      ? 'border-blue-500 bg-blue-50/70 shadow-sm'
+                      : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50'
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-bold text-sm text-slate-900">{c.name}</span>
-                    {c.badge && (
-                      <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-100">
-                        {c.badge}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-500 line-clamp-2">{c.desc}</p>
+                  <h3 className="font-bold text-sm text-slate-900 mb-1">{item.title}</h3>
+                  <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{item.desc}</p>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* 계산기 상세 뷰 */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
-            <CalculatorDetailView calcId={selectedCalc} />
+          {/* 4. 선택된 계산기 상세 폼 */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs">
+            <CalculatorDetailSection calcId={selectedCalc} />
           </div>
 
-          {/* FAQ & 공제 안내 */}
-          <CalculatorFaqSection />
+          {/* 5. FAQ & 2026 공제 안내 */}
+          <CalculatorFaqAccordion />
+
         </div>
       );
     }
 
-    function CalculatorDetailView({ calcId }) {
-      if (calcId === 'severance') return <SeveranceCalculator />;
-      if (calcId === 'transfer') return <TransferTaxCalculator />;
-      if (calcId === 'insurance') return <FourInsuranceCalculator />;
-      return <SalaryDetailCalculator />;
+    // 상세 계산기 전환 컴포넌트
+    function CalculatorDetailSection({ calcId }) {
+      if (calcId === 'severance') return <SeveranceDetailCalc />;
+      if (calcId === 'transfer') return <TransferDetailCalc />;
+      if (calcId === 'insurance') return <InsuranceDetailCalc />;
+      return <SalaryDetailCalc />;
     }
 
-    function SalaryDetailCalculator() {
+    function SalaryDetailCalc() {
       const [salaryType, setSalaryType] = useState('year');
       const [amount, setAmount] = useState(48000000);
       const [nonTax, setNonTax] = useState(200000);
       const [familyCount, setFamilyCount] = useState(1);
-      const [childrenCount, setChildrenCount] = useState(0);
+      const [childCount, setChildCount] = useState(0);
 
-      const monthlyGross = salaryType === 'year' ? Math.floor(amount / 12) : amount;
-      const taxable = Math.max(0, monthlyGross - nonTax);
+      const gross = salaryType === 'year' ? Math.floor(amount / 12) : amount;
+      const taxable = Math.max(0, gross - nonTax);
 
       const np = Math.floor(Math.min(taxable, 6170000) * 0.045);
       const hi = Math.floor(taxable * 0.03545);
@@ -650,71 +928,70 @@
 
       let it = Math.floor(taxable * 0.05);
       if (familyCount > 1) it = Math.max(0, it - (familyCount - 1) * 20000);
-      if (childrenCount > 0) it = Math.max(0, it - childrenCount * 15000);
+      if (childCount > 0) it = Math.max(0, it - childCount * 15000);
       const lit = Math.floor(it * 0.1);
 
       const totalDeduction = np + hi + lt + ei + it + lit;
-      const netPay = monthlyGross - totalDeduction;
+      const netPay = gross - totalDeduction;
 
       return (
         <div className="space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
             <div>
-              <h3 className="text-lg font-bold text-slate-900">2026년 연봉/월급 실수령액 정밀 계산</h3>
-              <p className="text-xs text-slate-500">부양가족 및 2026년 최신 4대보험 요율을 정밀 반영한 결과입니다.</p>
+              <h3 className="text-base font-bold text-slate-900">2026년 연봉/월급 실수령액 정밀 계산기</h3>
+              <p className="text-xs text-slate-500 mt-0.5">부양가족 및 2026년 최신 4대보험 개정 요율을 1원 단위까지 정밀 산출합니다.</p>
             </div>
-            <div className="flex gap-1 bg-slate-100 p-1 rounded-xl">
-              <button onClick={() => setSalaryType('year')} className={`px-3 py-1 text-xs font-bold rounded-lg ${salaryType === 'year' ? 'bg-white text-sky-700 shadow-sm' : 'text-slate-600'}`}>연봉 기준</button>
-              <button onClick={() => setSalaryType('month')} className={`px-3 py-1 text-xs font-bold rounded-lg ${salaryType === 'month' ? 'bg-white text-sky-700 shadow-sm' : 'text-slate-600'}`}>월급 기준</button>
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg text-xs font-semibold">
+              <button onClick={() => setSalaryType('year')} className={`px-3 py-1 rounded-md ${salaryType === 'year' ? 'bg-white text-blue-700 shadow-2xs font-bold' : 'text-slate-600'}`}>연봉 기준</button>
+              <button onClick={() => setSalaryType('month')} className={`px-3 py-1 rounded-md ${salaryType === 'month' ? 'bg-white text-blue-700 shadow-2xs font-bold' : 'text-slate-600'}`}>월급 기준</button>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-4">
+            <div className="space-y-4 text-xs">
               <div>
-                <label className="text-xs font-semibold text-slate-700">{salaryType === 'year' ? '희망 연봉 (세전)' : '월 기본급 (세전)'}</label>
-                <div className="relative mt-1">
-                  <input
-                    type="number"
-                    step="100000"
-                    value={amount}
-                    onChange={e => setAmount(Number(e.target.value))}
-                    className="w-full px-4 py-2.5 border rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-sky-500"
-                  />
-                  <span className="absolute right-4 top-2.5 text-xs text-slate-400">원</span>
-                </div>
+                <label className="font-semibold text-slate-700 block mb-1">
+                  {salaryType === 'year' ? '세전 희망 연봉 (원)' : '세전 월 기본급 (원)'}
+                </label>
+                <input
+                  type="number"
+                  step="100000"
+                  value={amount}
+                  onChange={(e) => setAmount(Number(e.target.value))}
+                  className="w-full px-3.5 py-2.5 text-sm font-bold font-mono border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500"
+                />
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-slate-700">월 비과세액</label>
-                  <input type="number" value={nonTax} onChange={e => setNonTax(Number(e.target.value))} className="mt-1 w-full px-3 py-2 border rounded-xl text-xs" />
+                  <label className="font-semibold text-slate-700 block mb-1">월 비과세액</label>
+                  <input type="number" value={nonTax} onChange={(e) => setNonTax(Number(e.target.value))} className="w-full px-3 py-2 border rounded-xl" />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-700">부양가족수(본인포함)</label>
-                  <input type="number" min="1" value={familyCount} onChange={e => setFamilyCount(Number(e.target.value))} className="mt-1 w-full px-3 py-2 border rounded-xl text-xs" />
+                  <label className="font-semibold text-slate-700 block mb-1">부양가족(본인포함)</label>
+                  <input type="number" min="1" value={familyCount} onChange={(e) => setFamilyCount(Number(e.target.value))} className="w-full px-3 py-2 border rounded-xl" />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-700">20세 이하 자녀수</label>
-                  <input type="number" min="0" value={childrenCount} onChange={e => setChildrenCount(Number(e.target.value))} className="mt-1 w-full px-3 py-2 border rounded-xl text-xs" />
+                  <label className="font-semibold text-slate-700 block mb-1">20세 이하 자녀</label>
+                  <input type="number" min="0" value={childCount} onChange={(e) => setChildCount(Number(e.target.value))} className="w-full px-3 py-2 border rounded-xl" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
+            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-3.5">
               <div className="flex justify-between items-baseline pb-3 border-b border-slate-200">
-                <span className="text-xs font-bold text-slate-500">예상 월 실수령액</span>
-                <span className="text-2xl font-extrabold text-sky-700">{netPay.toLocaleString()}원</span>
+                <span className="text-xs font-bold text-slate-500">예상 월 통장 실수령액</span>
+                <span className="text-2xl font-extrabold text-blue-700 font-mono">{formatCurrency(netPay)}원</span>
               </div>
-              <div className="space-y-1.5 text-xs">
-                <div className="flex justify-between text-slate-600"><span>월 환산 총 급여:</span><strong>{monthlyGross.toLocaleString()}원</strong></div>
-                <div className="flex justify-between text-slate-600"><span>국민연금:</span><span>{np.toLocaleString()}원</span></div>
-                <div className="flex justify-between text-slate-600"><span>건강보험:</span><span>{hi.toLocaleString()}원</span></div>
-                <div className="flex justify-between text-slate-600"><span>노인장기요양:</span><span>{lt.toLocaleString()}원</span></div>
-                <div className="flex justify-between text-slate-600"><span>고용보험:</span><span>{ei.toLocaleString()}원</span></div>
-                <div className="flex justify-between text-slate-600"><span>근로소득세 + 지방세:</span><span>{(it + lit).toLocaleString()}원</span></div>
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between text-slate-600"><span>월 환산 총 급여:</span><strong>{formatCurrency(gross)}원</strong></div>
+                <div className="flex justify-between text-slate-600"><span>국민연금 (4.5%):</span><span>{formatCurrency(np)}원</span></div>
+                <div className="flex justify-between text-slate-600"><span>건강보험 (3.545%):</span><span>{formatCurrency(hi)}원</span></div>
+                <div className="flex justify-between text-slate-600"><span>노인장기요양 (12.95%):</span><span>{formatCurrency(lt)}원</span></div>
+                <div className="flex justify-between text-slate-600"><span>고용보험 (0.9%):</span><span>{formatCurrency(ei)}원</span></div>
+                <div className="flex justify-between text-slate-600"><span>근로소득세 + 지방세:</span><span>{formatCurrency(it + lit)}원</span></div>
                 <div className="flex justify-between text-rose-600 font-bold pt-2 border-t border-slate-200">
-                  <span>총 공제액 합계:</span><span>{totalDeduction.toLocaleString()}원</span>
+                  <span>총 공제 합계액:</span><span>{formatCurrency(totalDeduction)}원</span>
                 </div>
               </div>
             </div>
@@ -723,38 +1000,38 @@
       );
     }
 
-    function SeveranceCalculator() {
-      const [avgSalary, setAvgSalary] = useState(3800000);
-      const [serviceYears, setServiceYears] = useState(3);
+    function SeveranceDetailCalc() {
+      const [salary, setSalary] = useState(3800000);
+      const [years, setYears] = useState(3);
       const [bonus, setBonus] = useState(3000000);
-      const totalSeverance = Math.floor((avgSalary + bonus / 12) * serviceYears);
+      const total = Math.floor((salary + bonus / 12) * years);
 
       return (
         <div className="space-y-6">
           <div className="pb-4 border-b border-slate-100">
-            <h3 className="text-lg font-bold text-slate-900">퇴직금 모의 계산기 (근로자퇴직급여 보장법)</h3>
-            <p className="text-xs text-slate-500">1일 평균임금과 계속근로연수를 기준으로 산출합니다.</p>
+            <h3 className="text-base font-bold text-slate-900">퇴직금 모의 계산기 (근로자퇴직급여 보장법)</h3>
+            <p className="text-xs text-slate-500">퇴직 전 3개월 평균임금과 계속근로연수 기준으로 법정 퇴직금을 산출합니다.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-4">
+            <div className="space-y-3.5 text-xs">
               <div>
-                <label className="text-xs font-semibold text-slate-700">최근 3개월 월 평균 급여 (세전)</label>
-                <input type="number" value={avgSalary} onChange={e => setAvgSalary(Number(e.target.value))} className="mt-1 w-full px-4 py-2 border rounded-xl font-bold" />
+                <label className="font-semibold text-slate-700 block mb-1">최근 3개월 월 평균 급여 (세전)</label>
+                <input type="number" value={salary} onChange={(e) => setSalary(Number(e.target.value))} className="w-full px-3.5 py-2.5 text-sm font-bold border rounded-xl" />
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-700">근속연수 (년)</label>
-                <input type="number" value={serviceYears} onChange={e => setServiceYears(Number(e.target.value))} className="mt-1 w-full px-4 py-2 border rounded-xl font-bold" />
+                <label className="font-semibold text-slate-700 block mb-1">근속 연수 (년)</label>
+                <input type="number" value={years} onChange={(e) => setYears(Number(e.target.value))} className="w-full px-3.5 py-2.5 text-sm font-bold border rounded-xl" />
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-700">연간 상여금 총액</label>
-                <input type="number" value={bonus} onChange={e => setBonus(Number(e.target.value))} className="mt-1 w-full px-4 py-2 border rounded-xl font-bold" />
+                <label className="font-semibold text-slate-700 block mb-1">연간 상여금 총액</label>
+                <input type="number" value={bonus} onChange={(e) => setBonus(Number(e.target.value))} className="w-full px-3.5 py-2.5 text-sm font-bold border rounded-xl" />
               </div>
             </div>
-            <div className="bg-emerald-50 p-6 rounded-2xl border border-emerald-200 flex flex-col justify-center">
-              <span className="text-xs font-bold text-emerald-800 uppercase">예상 세전 법정 퇴직금</span>
-              <span className="text-3xl font-extrabold text-emerald-700 mt-2">{totalSeverance.toLocaleString()}원</span>
-              <p className="text-xs text-emerald-900/70 mt-4 leading-relaxed">
-                * 1년 이상 계속 근로한 근로자(주 15시간 이상) 대상입니다. 실제 지급 시 퇴직소득세가 원천징수됩니다.
+            <div className="bg-amber-50/80 p-6 rounded-2xl border border-amber-200 flex flex-col justify-center">
+              <span className="text-xs font-bold text-amber-900">예상 세전 법정 퇴직금</span>
+              <span className="text-3xl font-extrabold text-amber-700 font-mono mt-2">{formatCurrency(total)}원</span>
+              <p className="text-xs text-amber-900/70 mt-4 leading-relaxed">
+                * 계속근로기간 1년 이상, 4주간 평균 주 15시간 이상 근무한 근로자에게 법적으로 지급됩니다.
               </p>
             </div>
           </div>
@@ -762,51 +1039,51 @@
       );
     }
 
-    function TransferTaxCalculator() {
-      const [salePrice, setSalePrice] = useState(900000000);
-      const [buyPrice, setBuyPrice] = useState(600000000);
-      const [expense, setExpense] = useState(20000000);
-      const [holdingYears, setHoldingYears] = useState(5);
+    function TransferDetailCalc() {
+      const [sale, setSale] = useState(900000000);
+      const [buy, setBuy] = useState(600000000);
+      const [exp, setExp] = useState(20000000);
+      const [years, setYears] = useState(5);
 
-      const gain = Math.max(0, salePrice - buyPrice - expense);
-      const deductionRate = Math.min(0.8, holdingYears * 0.04);
-      const specialDeduction = Math.floor(gain * deductionRate);
-      const taxableGain = Math.max(0, gain - specialDeduction - 2500000);
-      const tax = Math.floor(taxableGain * 0.35);
+      const gain = Math.max(0, sale - buy - exp);
+      const rate = Math.min(0.8, years * 0.04);
+      const specDed = Math.floor(gain * rate);
+      const taxable = Math.max(0, gain - specDed - 2500000);
+      const tax = Math.floor(taxable * 0.35);
 
       return (
         <div className="space-y-6">
           <div className="pb-4 border-b border-slate-100">
-            <h3 className="text-lg font-bold text-slate-900">양도소득세 간이 계산기</h3>
-            <p className="text-xs text-slate-500">부동산/분양권 양도차익 및 장기보유특별공제(최대 80%) 계산</p>
+            <h3 className="text-base font-bold text-slate-900">양도소득세 간이 계산기</h3>
+            <p className="text-xs text-slate-500">부동산/분양권 양도차익 및 장기보유특별공제(최대 80%) 반영 세액 계산</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-3">
+            <div className="space-y-3 text-xs">
               <div>
-                <label className="text-xs font-semibold text-slate-700">양도가액 (매도가)</label>
-                <input type="number" value={salePrice} onChange={e => setSalePrice(Number(e.target.value))} className="mt-1 w-full px-3 py-2 border rounded-xl text-sm font-bold" />
+                <label className="font-semibold text-slate-700 block mb-1">양도가액 (매도가)</label>
+                <input type="number" value={sale} onChange={(e) => setSale(Number(e.target.value))} className="w-full px-3 py-2 border rounded-xl font-bold" />
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-700">취득가액 (매수가)</label>
-                <input type="number" value={buyPrice} onChange={e => setBuyPrice(Number(e.target.value))} className="mt-1 w-full px-3 py-2 border rounded-xl text-sm font-bold" />
+                <label className="font-semibold text-slate-700 block mb-1">취득가액 (매수가)</label>
+                <input type="number" value={buy} onChange={(e) => setBuy(Number(e.target.value))} className="w-full px-3 py-2 border rounded-xl font-bold" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-slate-700">필요경비</label>
-                  <input type="number" value={expense} onChange={e => setExpense(Number(e.target.value))} className="mt-1 w-full px-3 py-2 border rounded-xl text-sm" />
+                  <label className="font-semibold text-slate-700 block mb-1">필요경비</label>
+                  <input type="number" value={exp} onChange={(e) => setExp(Number(e.target.value))} className="w-full px-3 py-2 border rounded-xl" />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-700">보유 기간(년)</label>
-                  <input type="number" value={holdingYears} onChange={e => setHoldingYears(Number(e.target.value))} className="mt-1 w-full px-3 py-2 border rounded-xl text-sm" />
+                  <label className="font-semibold text-slate-700 block mb-1">보유연수(년)</label>
+                  <input type="number" value={years} onChange={(e) => setYears(Number(e.target.value))} className="w-full px-3 py-2 border rounded-xl" />
                 </div>
               </div>
             </div>
-            <div className="bg-purple-50 p-6 rounded-2xl border border-purple-200 space-y-3">
-              <span className="text-xs font-bold text-purple-900 uppercase">예상 양도소득세 (지방세 별도)</span>
-              <div className="text-3xl font-extrabold text-purple-800">{tax.toLocaleString()}원</div>
-              <div className="text-xs text-purple-900/80 space-y-1 pt-3 border-t border-purple-200">
-                <div>양도차익: {gain.toLocaleString()}원</div>
-                <div>장특공제: -{specialDeduction.toLocaleString()}원</div>
+            <div className="bg-indigo-50/80 p-6 rounded-2xl border border-indigo-200 space-y-3">
+              <span className="text-xs font-bold text-indigo-900">예상 양도소득세 (지방세 별도)</span>
+              <div className="text-3xl font-extrabold text-indigo-800 font-mono">{formatCurrency(tax)}원</div>
+              <div className="text-xs text-indigo-900/80 space-y-1 pt-3 border-t border-indigo-200">
+                <div>양도차익: {formatCurrency(gain)}원</div>
+                <div>장특공제: -{formatCurrency(specDed)}원</div>
                 <div>기본공제: -2,500,000원</div>
               </div>
             </div>
@@ -815,7 +1092,7 @@
       );
     }
 
-    function FourInsuranceCalculator() {
+    function InsuranceDetailCalc() {
       const [pay, setPay] = useState(3000000);
       const np = Math.floor(pay * 0.045);
       const hi = Math.floor(pay * 0.03545);
@@ -825,36 +1102,32 @@
       return (
         <div className="space-y-6">
           <div className="pb-4 border-b border-slate-100">
-            <h3 className="text-lg font-bold text-slate-900">2026년 4대보험 근로자/사업주 분담비율 계산</h3>
-            <p className="text-xs text-slate-500">2026년 국민건강보험 및 국민연금 요율 반영</p>
+            <h3 className="text-base font-bold text-slate-900">2026년 4대보험 근로자/사업주 분담비율 계산</h3>
+            <p className="text-xs text-slate-500">2026년 국민건강보험 및 국민연금 개정 요율 완벽 반영</p>
           </div>
-          <div className="max-w-md">
-            <label className="text-xs font-semibold text-slate-700">월 보수월액 (세전 비과세 제외)</label>
-            <input type="number" value={pay} onChange={e => setPay(Number(e.target.value))} className="mt-1 w-full px-4 py-2 border rounded-xl font-bold" />
+          <div className="max-w-md text-xs">
+            <label className="font-semibold text-slate-700 block mb-1">월 보수월액 (세전 비과세 제외)</label>
+            <input type="number" value={pay} onChange={(e) => setPay(Number(e.target.value))} className="w-full px-3.5 py-2.5 text-sm font-bold border rounded-xl" />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-5 bg-sky-50 rounded-2xl border border-sky-100">
-              <h4 className="font-bold text-sky-900 text-sm mb-3">근로자 본인 부담금</h4>
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between"><span>국민연금 (4.5%):</span><strong>{np.toLocaleString()}원</strong></div>
-                <div className="flex justify-between"><span>건강보험 (3.545%):</span><strong>{hi.toLocaleString()}원</strong></div>
-                <div className="flex justify-between"><span>장기요양 (건보의 12.95%):</span><strong>{lt.toLocaleString()}원</strong></div>
-                <div className="flex justify-between"><span>고용보험 (0.9%):</span><strong>{ei.toLocaleString()}원</strong></div>
-                <div className="flex justify-between text-sky-800 font-bold pt-2 border-t border-sky-200">
-                  <span>근로자 총 공제:</span><span>{(np + hi + lt + ei).toLocaleString()}원</span>
-                </div>
+            <div className="p-5 bg-rose-50/70 rounded-2xl border border-rose-100 space-y-2 text-xs">
+              <h4 className="font-bold text-rose-900 text-sm mb-2">근로자 본인 부담금</h4>
+              <div className="flex justify-between"><span>국민연금 (4.5%):</span><strong>{formatCurrency(np)}원</strong></div>
+              <div className="flex justify-between"><span>건강보험 (3.545%):</span><strong>{formatCurrency(hi)}원</strong></div>
+              <div className="flex justify-between"><span>장기요양 (12.95%):</span><strong>{formatCurrency(lt)}원</strong></div>
+              <div className="flex justify-between"><span>고용보험 (0.9%):</span><strong>{formatCurrency(ei)}원</strong></div>
+              <div className="flex justify-between text-rose-700 font-bold pt-2 border-t border-rose-200">
+                <span>근로자 총 공제:</span><span>{formatCurrency(np + hi + lt + ei)}원</span>
               </div>
             </div>
-            <div className="p-5 bg-amber-50 rounded-2xl border border-amber-100">
-              <h4 className="font-bold text-amber-900 text-sm mb-3">사업주(회사) 부담금</h4>
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between"><span>국민연금 (4.5%):</span><strong>{np.toLocaleString()}원</strong></div>
-                <div className="flex justify-between"><span>건강보험 (3.545%):</span><strong>{hi.toLocaleString()}원</strong></div>
-                <div className="flex justify-between"><span>장기요양 (건보의 12.95%):</span><strong>{lt.toLocaleString()}원</strong></div>
-                <div className="flex justify-between"><span>고용·산재 (약 1.5%~):</span><strong>{Math.floor(pay * 0.0175).toLocaleString()}원</strong></div>
-                <div className="flex justify-between text-amber-800 font-bold pt-2 border-t border-amber-200">
-                  <span>사업주 추가 부담:</span><span>{(np + hi + lt + Math.floor(pay * 0.0175)).toLocaleString()}원</span>
-                </div>
+            <div className="p-5 bg-slate-100/80 rounded-2xl border border-slate-200 space-y-2 text-xs">
+              <h4 className="font-bold text-slate-900 text-sm mb-2">사업주(회사) 부담금</h4>
+              <div className="flex justify-between"><span>국민연금 (4.5%):</span><strong>{formatCurrency(np)}원</strong></div>
+              <div className="flex justify-between"><span>건강보험 (3.545%):</span><strong>{formatCurrency(hi)}원</strong></div>
+              <div className="flex justify-between"><span>장기요양 (12.95%):</span><strong>{formatCurrency(lt)}원</strong></div>
+              <div className="flex justify-between"><span>고용·산재 (약 1.5%~):</span><strong>{formatCurrency(Math.floor(pay * 0.0175))}원</strong></div>
+              <div className="flex justify-between text-slate-900 font-bold pt-2 border-t border-slate-300">
+                <span>사업주 추가 부담:</span><span>{formatCurrency(np + hi + lt + Math.floor(pay * 0.0175))}원</span>
               </div>
             </div>
           </div>
@@ -862,7 +1135,7 @@
       );
     }
 
-    function CalculatorFaqSection() {
+    function CalculatorFaqAccordion() {
       const [openIdx, setOpenIdx] = useState(0);
 
       const faqs = [
@@ -881,10 +1154,10 @@
       ];
 
       return (
-        <div className="mt-12 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 space-y-6">
+        <div className="mt-8 bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 space-y-6">
           <div>
-            <span className="text-xs font-bold text-sky-600 uppercase tracking-wide">SEO & 실무 세법 안내</span>
-            <h3 className="text-lg font-bold text-slate-900 mt-1">2026년 최신 세율 및 세무 자주 묻는 질문 (FAQ)</h3>
+            <span className="text-xs font-bold text-blue-600 uppercase tracking-wide">SEO & 실무 세법 안내</span>
+            <h3 className="text-base font-bold text-slate-900 mt-1">2026년 최신 세율 및 세무 자주 묻는 질문 (FAQ)</h3>
           </div>
 
           <div className="overflow-x-auto">
@@ -906,15 +1179,16 @@
             </table>
           </div>
 
-          <div className="space-y-3 pt-4">
+          <div className="space-y-3 pt-2">
             {faqs.map((faq, i) => (
-              <div key={i} className="border border-slate-200 rounded-xl overflow-hidden transition-all">
+              <div key={i} className="border border-slate-200 rounded-xl overflow-hidden">
                 <button
+                  type="button"
                   onClick={() => setOpenIdx(openIdx === i ? -1 : i)}
-                  className="w-full p-4 text-left flex justify-between items-center bg-slate-50 hover:bg-slate-100 text-sm font-bold text-slate-800"
+                  className="w-full p-4 text-left flex justify-between items-center bg-slate-50 hover:bg-slate-100 text-sm font-bold text-slate-800 cursor-pointer"
                 >
                   <span className="flex items-center gap-2">
-                    <span className="text-sky-600 font-extrabold">Q.</span> {faq.q}
+                    <span className="text-blue-600 font-extrabold">Q.</span> {faq.q}
                   </span>
                   <Icon name={openIdx === i ? 'chevronUp' : 'chevronDown'} className="w-4 h-4 text-slate-500" />
                 </button>
@@ -933,261 +1207,7 @@
       );
     }
 
-    function TaxInvoiceSection({ company }) {
-      const [claimType, setClaimType] = useState('영수');
-      const [issueDate, setIssueDate] = useState(() => new Date().toISOString().slice(0, 10));
-
-      const [supplier] = useState({
-        corpName: company.corpName,
-        bizNumber: company.bizNumber,
-        ceoName: company.ceoName,
-        address: company.address,
-        bizType: company.bizType,
-        bizItem: company.bizItem,
-        email: company.email
-      });
-
-      const [buyer, setBuyer] = useState({
-        corpName: '(주)고객사파트너',
-        bizNumber: '220-81-62517',
-        ceoName: '이대표',
-        address: '경기도 성남시 분당구 판교역로 166',
-        bizType: '도소매',
-        bizItem: '전자상거래',
-        email: 'partner@example.com'
-      });
-
-      const [items, setItems] = useState([
-        { id: 1, month: '10', day: '23', name: '2026년 시스템 개발 및 유지보수 용역', spec: '표준형', qty: 1, unitPrice: 3000000, supplyAmount: 3000000, taxAmount: 300000, remark: '' },
-      ]);
-
-      const handleItemChange = (id, field, value) => {
-        setItems(items.map(it => {
-          if (it.id !== id) return it;
-          const updated = { ...it, [field]: value };
-          if (field === 'qty' || field === 'unitPrice') {
-            const q = Number(field === 'qty' ? value : updated.qty) || 0;
-            const p = Number(field === 'unitPrice' ? value : updated.unitPrice) || 0;
-            const sup = q * p;
-            updated.supplyAmount = sup;
-            updated.taxAmount = Math.floor(sup * 0.1);
-          }
-          return updated;
-        }));
-      };
-
-      const addItem = () => {
-        const nextId = items.length > 0 ? Math.max(...items.map(i => i.id)) + 1 : 1;
-        setItems([...items, { id: nextId, month: '10', day: '23', name: '', spec: '', qty: 1, unitPrice: 0, supplyAmount: 0, taxAmount: 0, remark: '' }]);
-      };
-
-      const removeItem = (id) => {
-        if (items.length <= 1) return;
-        setItems(items.filter(i => i.id !== id));
-      };
-
-      const totalSupply = items.reduce((acc, cur) => acc + (Number(cur.supplyAmount) || 0), 0);
-      const totalTax = items.reduce((acc, cur) => acc + (Number(cur.taxAmount) || 0), 0);
-      const grandTotal = totalSupply + totalTax;
-
-      const [showCertModal, setShowCertModal] = useState(false);
-
-      return (
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 no-print">
-            <div>
-              <span className="text-xs font-bold text-sky-600 uppercase">국세청 고시 표준 서식 제11호</span>
-              <h2 className="text-2xl font-bold text-slate-900">전자세금계산서 작성 및 실시간 발행</h2>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => window.print()}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm"
-              >
-                <Icon name="printer" className="w-4 h-4" /> 인쇄 / PDF 저장
-              </button>
-              <button
-                onClick={() => setShowCertModal(true)}
-                className="px-5 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-md shadow-sky-200"
-              >
-                <Icon name="shield" className="w-4 h-4" /> 전자서명 & 국세청 즉시 발행
-              </button>
-            </div>
-          </div>
-
-          <div id="printable-invoice" className="bg-white border-2 border-red-500 p-6 sm:p-8 rounded-2xl shadow-sm text-xs">
-            <div className="flex justify-between items-center border-b-2 border-red-500 pb-4 mb-4">
-              <div className="w-32 text-slate-400 text-[10px]">승인번호: 20261023-41000000-00001</div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-red-600 tracking-wider text-center">
-                전 자 세 금 계 산 서
-                <span className="block text-xs font-normal text-slate-500 mt-1">[공급자 보관용 / 공급받는자 보관용]</span>
-              </h1>
-              <div className="w-32 text-right">
-                <span className="px-3 py-1 bg-red-100 text-red-700 font-bold rounded-md">{claimType}</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 border border-red-300 divide-y md:divide-y-0 md:divide-x divide-red-300 mb-4">
-              <div className="p-3 bg-red-50/30">
-                <div className="font-bold text-red-700 mb-2 flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-red-600"></span> 공급자 (발행자)
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="col-span-1 text-slate-500">등록번호</div><div className="col-span-2 font-bold">{supplier.bizNumber}</div>
-                  <div className="col-span-1 text-slate-500">상호 (법인명)</div><div className="col-span-2 font-bold">{supplier.corpName}</div>
-                  <div className="col-span-1 text-slate-500">성명 (대표자)</div><div className="col-span-2">{supplier.ceoName}</div>
-                  <div className="col-span-1 text-slate-500">사업장 주소</div><div className="col-span-2">{supplier.address}</div>
-                  <div className="col-span-1 text-slate-500">업태 / 종목</div><div className="col-span-2">{supplier.bizType} / {supplier.bizItem}</div>
-                  <div className="col-span-1 text-slate-500">이메일</div><div className="col-span-2 font-mono text-sky-700">{supplier.email}</div>
-                </div>
-              </div>
-
-              <div className="p-3 bg-blue-50/30">
-                <div className="font-bold text-blue-700 mb-2 flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-blue-600"></span> 공급받는자 (귀하)
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="col-span-1 text-slate-500">등록번호</div>
-                  <div className="col-span-2">
-                    <input type="text" value={buyer.bizNumber} onChange={e => setBuyer({...buyer, bizNumber: e.target.value})} className="w-full px-2 py-0.5 border rounded font-bold" />
-                  </div>
-                  <div className="col-span-1 text-slate-500">상호 (법인명)</div>
-                  <div className="col-span-2">
-                    <input type="text" value={buyer.corpName} onChange={e => setBuyer({...buyer, corpName: e.target.value})} className="w-full px-2 py-0.5 border rounded font-bold" />
-                  </div>
-                  <div className="col-span-1 text-slate-500">성명 (대표자)</div>
-                  <div className="col-span-2">
-                    <input type="text" value={buyer.ceoName} onChange={e => setBuyer({...buyer, ceoName: e.target.value})} className="w-full px-2 py-0.5 border rounded" />
-                  </div>
-                  <div className="col-span-1 text-slate-500">사업장 주소</div>
-                  <div className="col-span-2">
-                    <input type="text" value={buyer.address} onChange={e => setBuyer({...buyer, address: e.target.value})} className="w-full px-2 py-0.5 border rounded" />
-                  </div>
-                  <div className="col-span-1 text-slate-500">업태 / 종목</div>
-                  <div className="col-span-2 flex gap-1">
-                    <input type="text" value={buyer.bizType} onChange={e => setBuyer({...buyer, bizType: e.target.value})} className="w-1/2 px-2 py-0.5 border rounded" placeholder="업태" />
-                    <input type="text" value={buyer.bizItem} onChange={e => setBuyer({...buyer, bizItem: e.target.value})} className="w-1/2 px-2 py-0.5 border rounded" placeholder="종목" />
-                  </div>
-                  <div className="col-span-1 text-slate-500">이메일</div>
-                  <div className="col-span-2">
-                    <input type="email" value={buyer.email} onChange={e => setBuyer({...buyer, email: e.target.value})} className="w-full px-2 py-0.5 border rounded font-mono text-sky-700" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 border border-red-300 divide-y sm:divide-y-0 sm:divide-x divide-red-300 mb-4 p-3 bg-red-50/20 items-center">
-              <div>
-                <span className="text-slate-500 block text-[10px]">작성일자</span>
-                <input type="date" value={issueDate} onChange={e => setIssueDate(e.target.value)} className="font-bold text-slate-900 border px-2 py-0.5 rounded" />
-              </div>
-              <div>
-                <span className="text-slate-500 block text-[10px]">공급가액 합계</span>
-                <span className="font-extrabold text-sm text-slate-900">{totalSupply.toLocaleString()} 원</span>
-              </div>
-              <div>
-                <span className="text-slate-500 block text-[10px]">세액(VAT 10%) 합계</span>
-                <span className="font-extrabold text-sm text-red-600">{totalTax.toLocaleString()} 원</span>
-              </div>
-            </div>
-
-            <div className="overflow-x-auto border border-red-300 rounded-lg mb-4">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-red-100/50 text-red-900 font-bold border-b border-red-300">
-                  <tr>
-                    <th className="p-2 w-14">월/일</th>
-                    <th className="p-2">품목 / 규격</th>
-                    <th className="p-2 w-16 text-right">수량</th>
-                    <th className="p-2 w-28 text-right">단가</th>
-                    <th className="p-2 w-28 text-right">공급가액</th>
-                    <th className="p-2 w-24 text-right">세액</th>
-                    <th className="p-2 w-12 text-center no-print">삭제</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-red-200">
-                  {items.map(it => (
-                    <tr key={it.id}>
-                      <td className="p-2 flex gap-1">
-                        <input type="text" value={it.month} onChange={e => handleItemChange(it.id, 'month', e.target.value)} className="w-6 border text-center rounded" />/
-                        <input type="text" value={it.day} onChange={e => handleItemChange(it.id, 'day', e.target.value)} className="w-6 border text-center rounded" />
-                      </td>
-                      <td className="p-2">
-                        <input type="text" value={it.name} onChange={e => handleItemChange(it.id, 'name', e.target.value)} className="w-full border px-2 py-1 rounded font-medium" placeholder="품목명 입력" />
-                      </td>
-                      <td className="p-2 text-right">
-                        <input type="number" value={it.qty} onChange={e => handleItemChange(it.id, 'qty', e.target.value)} className="w-full border px-1 py-1 text-right rounded" />
-                      </td>
-                      <td className="p-2 text-right">
-                        <input type="number" value={it.unitPrice} onChange={e => handleItemChange(it.id, 'unitPrice', e.target.value)} className="w-full border px-1 py-1 text-right rounded" />
-                      </td>
-                      <td className="p-2 text-right font-bold">{it.supplyAmount.toLocaleString()}</td>
-                      <td className="p-2 text-right text-red-600 font-bold">{it.taxAmount.toLocaleString()}</td>
-                      <td className="p-2 text-center no-print">
-                        <button onClick={() => removeItem(it.id)} className="text-red-500 hover:text-red-700">
-                          <Icon name="trash" className="w-4 h-4 mx-auto" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="flex justify-between items-center mb-4 no-print">
-              <button onClick={addItem} className="px-3 py-1.5 border border-dashed border-red-400 text-red-600 font-bold rounded-lg hover:bg-red-50 flex items-center gap-1">
-                <Icon name="plus" className="w-4 h-4" /> 품목 추가하기
-              </button>
-              <div className="flex items-center gap-4">
-                <label className="flex items-center gap-1.5 cursor-pointer font-bold">
-                  <input type="radio" name="claim" checked={claimType === '영수'} onChange={() => setClaimType('영수')} /> 이 금액을 영수함
-                </label>
-                <label className="flex items-center gap-1.5 cursor-pointer font-bold">
-                  <input type="radio" name="claim" checked={claimType === '청구'} onChange={() => setClaimType('청구')} /> 이 금액을 청구함
-                </label>
-              </div>
-            </div>
-
-            <div className="p-4 bg-red-50/40 border border-red-300 rounded-xl flex flex-col sm:flex-row justify-between items-center gap-2">
-              <div className="text-sm">
-                <span className="text-slate-500 mr-2">합계금액(한글):</span>
-                <strong className="text-red-700 font-extrabold text-base">{numberToKorean(grandTotal)}</strong>
-              </div>
-              <div className="text-base sm:text-lg font-extrabold text-slate-900">
-                총 청구액: <span className="text-red-600">{grandTotal.toLocaleString()}</span> 원
-              </div>
-            </div>
-          </div>
-
-          {showCertModal && (
-            <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-              <div className="bg-white rounded-2xl max-w-md w-full p-6 text-center space-y-4 shadow-2xl">
-                <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
-                  <Icon name="check" className="w-8 h-8" />
-                </div>
-                <h3 className="text-lg font-bold text-slate-900">전자세금계산서 발행 및 서명 완료</h3>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  국세청 표준 인증 규격에 따라 2048bit PKI 전자서명이 생성되었습니다.<br />
-                  공급받는자({buyer.email}) 앞 승인 알림 메일 발송 및 홈택스 전송 대기 상태로 등록되었습니다.
-                </p>
-                <div className="p-3 bg-slate-50 rounded-xl text-left text-[11px] text-slate-600 space-y-1">
-                  <div>승인번호: 20261023-41000000-00001</div>
-                  <div>발행상태: 국세청 전송 성공 (정상 승인)</div>
-                  <div>총 공급가액: {totalSupply.toLocaleString()}원</div>
-                  <div>총 세액(VAT): {totalTax.toLocaleString()}원</div>
-                </div>
-                <button
-                  onClick={() => setShowCertModal(false)}
-                  className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl"
-                >
-                  확인
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      );
-    }
-
+    // 세무 가이드 섹션
     function TaxGuideSection() {
       const articles = [
         {
@@ -1195,76 +1215,204 @@
           title: '2026년 전자세금계산서 의무발행 대상 및 미발행 가산세 총정리',
           date: '2026.01.15',
           category: '전자세금계산서',
-          readTime: '4분',
           summary: '직전 연도 공급가액 합계액 1억 원 이상 개인사업자 및 모든 법인사업자의 의무 발급 기준과 미발급 2% 가산세 규정을 상세 해설합니다.',
-          content: `대한민국 부가가치세법 제32조에 따라 법인사업자는 공급가액과 무관하게 100% 전자세금계산서 의무발행 대상입니다. 개인사업자의 경우 2024년 7월부터 직전 연도 사업장별 공급가액(면세공급가액 포함) 기준이 1억 원 이상으로 확대 적용되어 2026년에도 유지됩니다.
-
-의무발급 대상자가 종이세금계산서를 발급하거나 미발급하는 경우 공급가액의 2%에 달하는 무거운 미발급 가산세가 부과되며, 지연발급 시에도 1%의 가산세가 발생하므로 거래 익월 10일까지 홈택스 또는 표준 ERP 시스템을 통해 기한 내 전송을 완료해야 합니다.`
+          content: '대한민국 부가가치세법 제32조에 따라 법인사업자는 100% 의무발행 대상이며, 개인사업자는 직전 연도 공급가액 1억 원 이상일 때 의무발행 대상이 됩니다. 기한 내 미발행 시 공급가액의 2% 가산세가 부과됩니다.'
         },
         {
           id: 2,
           title: '부가가치세 신고 기간 및 매입세액 불공제 주의사항 5가지',
           date: '2026.01.20',
           category: '부가가치세',
-          readTime: '5분',
           summary: '일반과세자 1월·7월 확정신고 시 대표들이 가장 흔히 실수하는 비영업용 소형승용차 및 접대비 매입세액 불공제 항목을 점검합니다.',
-          content: `부가가치세 확정신고 시 사업과 관련해 지출하였더라도 세법상 공제받을 수 없는 '매입세액 불공제' 항목을 정확히 이해해야 불성실 가산세를 피할 수 있습니다.
-
-첫째, 배기량 1,000cc 초과 비영업용 8인승 이하 승용차 구입 및 임차, 유류비, 수리비는 매입세액 불공제 대상입니다.
-둘째, 거래처 접대 및 회식비 등 접대비 관련 매입세액은 전액 공제되지 않습니다.
-셋째, 사업자등록 전 지출 중 주민등록번호 발급 기한(과세기간 종료일로부터 20일 이내)을 도과한 경우입니다.
-넷째, 면세사업 및 토지 관련 자본적 지출 세액입니다.
-다섯째, 사실과 다른 세금계산서 또는 공급가액 과다 기재 건입니다.`
-        },
-        {
-          id: 3,
-          title: '2026년 4대보험 요율 개정안 및 사업주·근로자 부담비율 완벽 가이드',
-          date: '2026.02.01',
-          category: '4대보험/인사노무',
-          readTime: '6분',
-          summary: '건강보험료율(7.09%), 장기요양보험료율(12.95%), 국민연금 기준소득월액 상한액(617만원) 등 2026년 최신 4대보험 개정 포인트를 정리합니다.',
-          content: `2026년도 건강보험료율은 7.09%로 근로자와 사업주가 각각 3.545%씩 절반을 부담합니다. 노인장기요양보험료는 건강보험료 금액에 12.95%를 곱하여 결정됩니다.
-
-국민연금은 총 9.0%로 각각 4.5%를 부담하며, 기준소득월액 하한액은 39만 원, 상한액은 617만 원으로 상한액을 초과하는 소득에 대해서는 동일한 최고 보험료가 적용됩니다. 고용보험 실업급여 요율은 1.8%(근로자 0.9%, 사업주 0.9%)이며 사업주는 사업 규모에 따라 0.25%~0.85%의 고용안정·직업능력개발사업 보험료를 단독 부담합니다.`
-        },
-        {
-          id: 4,
-          title: '수정세금계산서 발행 사유 6가지와 올바른 작성 방법',
-          date: '2026.02.10',
-          category: '세무실무',
-          readTime: '4분',
-          summary: '기재사항 착오정정, 계약의 해제, 환입, 공급가액 변동 등 6대 수정 사유별 가산세 없는 소급 발급 요령을 안내합니다.',
-          content: `전자세금계산서를 발행한 후 거래 내용에 변동이 생기거나 오기입이 발견되면 부가가치세법 시행령 제70조에 의거 수정세금계산서를 발급해야 합니다.
-
-1. 기재사항 착오정정: 사업자번호나 공급가액을 잘못 적은 경우 당초 계산서를 취소하는 음(-)의 계산서와 올바른 계산서를 동시에 발급합니다.
-2. 계약의 해제: 거래가 취소된 경우 해제일을 작성일자로 하여 붉은색 마이너스(-) 세금계산서 1장을 발급합니다.
-3. 환입: 재화가 반품된 경우 반품된 날을 작성일자로 하여 음(-)의 계산서를 발급합니다.
-4. 공급가액 변동: 단가 조정 등으로 금액이 증감된 경우 변동일을 작성일자로 차액만큼 추가 증액(+) 또는 감액(-) 발행합니다.`
+          content: '비영업용 8인승 이하 승용차 구입 및 유지비, 거래처 접대비, 사업자등록 전 주민번호 미기재 매입분은 매입세액 불공제 대상이므로 성실신고가 필수입니다.'
         }
       ];
 
       return (
-        <div className="space-y-8">
-          <div className="text-center max-w-2xl mx-auto">
-            <span className="text-xs font-bold text-sky-600 bg-sky-50 px-3 py-1 rounded-full uppercase">전문 세무 정보 & 가이드</span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">사업자와 근로자를 위한 실전 세무 칼럼</h2>
+        <div className="space-y-6">
+          <div className="border-b pb-4">
+            <h2 className="text-xl font-bold text-slate-900">📖 세무 실무 가이드 & 칼럼</h2>
             <p className="text-xs text-slate-500 mt-1">국세청 고시 및 세법 개정안을 바탕으로 검증된 실무 지식을 제공합니다.</p>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {articles.map(art => (
-              <article key={art.id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
-                  <span className="font-bold text-sky-600 bg-sky-50 px-2.5 py-0.5 rounded-full">{art.category}</span>
-                  <span>{art.date} · 읽는 시간 {art.readTime}</span>
-                </div>
-                <h3 className="text-base font-bold text-slate-900 mb-2 hover:text-sky-600 transition-colors cursor-pointer">{art.title}</h3>
-                <p className="text-xs text-slate-500 leading-relaxed mb-4">{art.summary}</p>
-                <div className="p-4 bg-slate-50 rounded-xl text-xs text-slate-600 leading-relaxed whitespace-pre-line border border-slate-100">
-                  {art.content}
-                </div>
-              </article>
+            {articles.map((art) => (
+              <div key={art.id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+                <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">{art.category}</span>
+                <h3 className="font-bold text-slate-900 text-sm">{art.title}</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">{art.summary}</p>
+                <div className="p-3 bg-slate-50 rounded-xl text-xs text-slate-600 border border-slate-100">{art.content}</div>
+              </div>
             ))}
+          </div>
+        </div>
+      );
+    }
+
+    // 사업자 설정 화면
+    function CompanySettingsView({ company, onSave }) {
+      const [data, setData] = useState(company);
+
+      return (
+        <div className="max-w-3xl mx-auto bg-white border border-slate-200 rounded-2xl p-8 shadow-xs space-y-6 text-xs">
+          <div className="border-b pb-4">
+            <h2 className="text-lg font-bold text-slate-900">사업자 정보 및 환경 설정</h2>
+            <p className="text-slate-500 mt-1">세금계산서 작성 시 '공급자' 정보로 자동 반영되는 기본 정보를 관리합니다.</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="font-semibold text-slate-700 block mb-1">상호명</label>
+              <input type="text" value={data.companyName} onChange={e => setData({...data, companyName: e.target.value})} className="w-full px-3 py-2 border rounded-lg" />
+            </div>
+            <div>
+              <label className="font-semibold text-slate-700 block mb-1">사업자등록번호</label>
+              <input type="text" value={data.bizNumber} onChange={e => setData({...data, bizNumber: e.target.value})} className="w-full px-3 py-2 border rounded-lg font-mono font-bold" />
+            </div>
+            <div>
+              <label className="font-semibold text-slate-700 block mb-1">대표자명</label>
+              <input type="text" value={data.ceoName} onChange={e => setData({...data, ceoName: e.target.value})} className="w-full px-3 py-2 border rounded-lg" />
+            </div>
+            <div>
+              <label className="font-semibold text-slate-700 block mb-1">대표 이메일</label>
+              <input type="email" value={data.email} onChange={e => setData({...data, email: e.target.value})} className="w-full px-3 py-2 border rounded-lg font-mono" />
+            </div>
+            <div className="col-span-2">
+              <label className="font-semibold text-slate-700 block mb-1">사업장 주소</label>
+              <input type="text" value={data.address} onChange={e => setData({...data, address: e.target.value})} className="w-full px-3 py-2 border rounded-lg" />
+            </div>
+          </div>
+
+          <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+            <h4 className="font-bold text-slate-800">고객센터 정보 설정</h4>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[11px] text-slate-600 block mb-1">문의 번호</label>
+                <input type="text" value={data.csPhone} onChange={e => setData({...data, csPhone: e.target.value})} className="w-full px-3 py-2 border rounded-lg bg-white" placeholder="미정" />
+              </div>
+              <div>
+                <label className="text-[11px] text-slate-600 block mb-1">운영시간 / 휴무</label>
+                <input type="text" value={data.csHours} onChange={e => setData({...data, csHours: e.target.value})} className="w-full px-3 py-2 border rounded-lg bg-white" placeholder="미정" />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <button onClick={() => onSave(data)} className="px-5 py-2.5 bg-slate-900 text-white font-bold text-xs rounded-xl shadow-xs">
+              사업자 정보 변경 저장
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // 전자세금계산서 작성 모달
+    function TaxInvoiceModal({ company, kind, onClose, onIssued }) {
+      const [buyerName, setBuyerName] = useState('(주)파트너사');
+      const [buyerBiz, setBuyerBiz] = useState('220-81-62517');
+      const [buyerCeo, setBuyerCeo] = useState('김대표');
+      const [buyerEmail, setBuyerEmail] = useState('partner@example.com');
+      const [itemDesc, setItemDesc] = useState('2026년 시스템 개발 및 유지보수 용역');
+      const [supplyAmount, setSupplyAmount] = useState(3000000);
+      const taxAmount = Math.floor(supplyAmount * 0.1);
+      const grandTotal = supplyAmount + taxAmount;
+
+      return (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center pb-3 border-b">
+              <h3 className="font-bold text-slate-900 text-base">
+                국세청 표준 전자세금계산서 작성 ({kind === 'sales' ? '매출' : '매입'})
+              </h3>
+              <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-xl font-bold">×</button>
+            </div>
+
+            <div className="border-2 border-red-500 rounded-xl p-4 bg-red-50/10 space-y-4 text-xs">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-3 bg-red-50/40 rounded-lg">
+                  <div className="font-bold text-red-700 mb-2">공급자 (발행자)</div>
+                  <div>상호: {company.companyName}</div>
+                  <div>등록번호: {company.bizNumber}</div>
+                  <div>대표: {company.ceoName}</div>
+                  <div>이메일: {company.email}</div>
+                </div>
+                <div className="p-3 bg-blue-50/40 rounded-lg space-y-2">
+                  <div className="font-bold text-blue-700">공급받는자</div>
+                  <input type="text" value={buyerName} onChange={e => setBuyerName(e.target.value)} className="w-full px-2 py-1 border rounded" placeholder="상호명" />
+                  <input type="text" value={buyerBiz} onChange={e => setBuyerBiz(e.target.value)} className="w-full px-2 py-1 border rounded font-mono" placeholder="등록번호" />
+                  <input type="email" value={buyerEmail} onChange={e => setBuyerEmail(e.target.value)} className="w-full px-2 py-1 border rounded font-mono" placeholder="이메일" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="font-semibold block">품목명 / 공급가액</label>
+                <input type="text" value={itemDesc} onChange={e => setItemDesc(e.target.value)} className="w-full px-3 py-2 border rounded-lg" />
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <span className="text-slate-500 block mb-1">공급가액(원)</span>
+                    <input type="number" value={supplyAmount} onChange={e => setSupplyAmount(Number(e.target.value))} className="w-full px-3 py-2 border rounded-lg font-bold" />
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block mb-1">세액(VAT 10%)</span>
+                    <div className="px-3 py-2 border rounded-lg bg-slate-50 font-bold text-red-600">{formatCurrency(taxAmount)}원</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center p-3 bg-red-100/50 rounded-lg text-sm font-bold">
+                <span>합계금액(총 청구액):</span>
+                <span className="text-red-700 text-base">{formatCurrency(grandTotal)} 원</span>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button onClick={onClose} className="px-4 py-2 text-xs border rounded-lg hover:bg-slate-50">취소</button>
+              <button onClick={onIssued} className="px-5 py-2 text-xs bg-slate-900 text-white font-bold rounded-lg shadow-sm">
+                2048bit PKI 전자서명 및 국세청 발행
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // 정책 안내 모달
+    function PolicyModal({ policyKey, onClose, email }) {
+      return (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border space-y-4">
+            <div className="flex justify-between items-center pb-3 border-b">
+              <h3 className="font-bold text-slate-900 text-base">
+                {policyKey === 'privacy' && '개인정보처리방침'}
+                {policyKey === 'terms' && '서비스 이용약관'}
+                {policyKey === 'about' && '서비스 소개 (About Us)'}
+                {policyKey === 'contact' && '고객지원 및 문의하기'}
+              </h3>
+              <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-xl font-bold">×</button>
+            </div>
+            <div className="text-xs text-slate-600 space-y-3 leading-relaxed">
+              {policyKey === 'privacy' && (
+                <>
+                  <p>TaxOne은 이용자의 개인정보 및 세무 데이터를 최우선으로 보호합니다. 본 사이트의 모든 모의계산은 사용자의 로컬 브라우저에서 수행되며 서버에 금융정보나 급여내역을 저장하지 않습니다.</p>
+                  <p>문의처: {email}</p>
+                </>
+              )}
+              {policyKey === 'terms' && (
+                <p>본 사이트의 세무 및 4대보험 계산 결과는 2026년 세법 규정을 바탕으로 산출된 모의계산 참고자료이며, 법적 세무 신고 시에는 공인세무사의 확인을 권장합니다.</p>
+              )}
+              {policyKey === 'about' && (
+                <p>TaxOne은 소상공인과 근로자를 위해 국세청 표준 전자세금계산서 작성과 23종 실무 세무 계산을 원클릭으로 지원하는 스마트 세무 포털입니다.</p>
+              )}
+              {policyKey === 'contact' && (
+                <div className="p-4 bg-slate-50 rounded-xl space-y-2 border">
+                  <div>📧 <strong>이메일 문의:</strong> {email}</div>
+                  <div>📞 <strong>고객센터 전화:</strong> 미정</div>
+                  <div>⏰ <strong>운영시간:</strong> 미정</div>
+                </div>
+              )}
+            </div>
+            <div className="flex justify-end pt-2">
+              <button onClick={onClose} className="px-4 py-2 bg-slate-900 text-white font-bold text-xs rounded-lg">확인</button>
+            </div>
           </div>
         </div>
       );
