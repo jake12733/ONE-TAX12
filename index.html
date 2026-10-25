@@ -116,7 +116,7 @@
 
     const formatCurrency = (val) => Number(val || 0).toLocaleString();
 
-    // 23종 세무 계산기 데이터 (이미지 2 기준 카테고리별 8, 5, 2, 8 구성)
+    // 23종 세무 계산기 데이터 (이미지 2 기준 카테고리별 구성)
     const CALC_CATEGORIES = [
       { id: 'all', name: '전체 (23)' },
       { id: 'tax', name: '소득세·국세 8' },
@@ -126,7 +126,6 @@
     ];
 
     const ALL_CALCULATORS = [
-      // 소득세·국세 8개
       { id: 'c1', category: 'tax', name: '근로소득세', icon: 'users', bg: 'bg-orange-500' },
       { id: 'c3', category: 'tax', name: '법인세', icon: 'building', bg: 'bg-blue-600' },
       { id: 'c4', category: 'tax', name: '종합소득세', icon: 'chart', bg: 'bg-slate-900' },
@@ -136,18 +135,15 @@
       { id: 'c12', category: 'tax', name: '이자소득세', icon: 'search', bg: 'bg-teal-500' },
       { id: 'c17', category: 'tax', name: '업종코드 조회', icon: 'clipboardList', bg: 'bg-amber-400' },
 
-      // 근로·연봉·월급 5개
       { id: 'c18', category: 'salary', name: '근로 계산기', icon: 'calculator', bg: 'bg-emerald-500' },
       { id: 'c19', category: 'salary', name: '연봉 계산기', icon: 'chart', bg: 'bg-blue-600' },
       { id: 'c20', category: 'salary', name: '월급 계산기', icon: 'wallet', bg: 'bg-emerald-600' },
       { id: 'c21', category: 'salary', name: '시급 계산기', icon: 'coins', bg: 'bg-slate-900' },
       { id: 'c22', category: 'salary', name: '퇴직금 계산기', icon: 'shoppingBag', bg: 'bg-orange-600' },
 
-      // 4대보험·건강보험 2개
       { id: 'c2', category: 'insurance', name: '4대보험', icon: 'heart', bg: 'bg-rose-500' },
       { id: 'c23', category: 'insurance', name: '지역가입자 건강보험료', icon: 'heart', bg: 'bg-rose-600' },
 
-      // 자산·양도·주식 8개
       { id: 'c6', category: 'asset', name: '주식 양도소득세', icon: 'trendingUp', bg: 'bg-emerald-600' },
       { id: 'c7', category: 'asset', name: '양도소득세', icon: 'building', bg: 'bg-indigo-600' },
       { id: 'c8', category: 'asset', name: '퇴직소득세', icon: 'shoppingBag', bg: 'bg-orange-500' },
@@ -159,10 +155,42 @@
     ];
 
     // ----------------------------------------------------
-    // 세무 계산기 허브 컴포넌트 (요청하신 이미지 07035a.png 스타일로 변경)
+    // 세무 계산기 허브 컴포넌트 (요청하신 실수령액 간이 계산기 위젯 포함)
     // ----------------------------------------------------
     function TaxCalculatorHub() {
       const [activeCategory, setActiveCategory] = useState('all');
+
+      // 실수령액 간이 계산기 상태
+      const [calcMode, setCalcMode] = useState('annual'); // 'annual' 또는 'monthly'
+      const [amount, setAmount] = useState(45000000);
+
+      const quickResult = useMemo(() => {
+        const gross = calcMode === 'annual' ? Math.floor(amount / 12) : Number(amount) || 0;
+        const nonTaxable = 200000;
+        const taxable = Math.max(0, gross - nonTaxable);
+
+        const nationalPension = Math.floor(Math.min(Math.max(taxable, 390000), 6170000) * 0.045);
+        const healthInsurance = Math.floor(taxable * 0.03545);
+        const longTermCare = Math.floor(healthInsurance * 0.1295);
+        const employmentInsurance = Math.floor(taxable * 0.009);
+        
+        const estimatedTax = Math.floor(taxable * 0.032);
+        const localIncomeTax = Math.floor(estimatedTax * 0.1);
+
+        const totalDeduction = nationalPension + healthInsurance + longTermCare + employmentInsurance + estimatedTax + localIncomeTax;
+        const netPay = gross - totalDeduction;
+
+        return {
+          gross,
+          nationalPension,
+          healthInsurance,
+          longTermCare,
+          employmentInsurance,
+          totalTax: estimatedTax + localIncomeTax,
+          totalDeduction,
+          netPay
+        };
+      }, [calcMode, amount]);
 
       const filteredCalcs = useMemo(() => {
         if (activeCategory === 'all') return ALL_CALCULATORS;
@@ -171,9 +199,153 @@
 
       return (
         <div className="space-y-6">
+          
+          {/* 30초 실시간 월급 실수령액 간이 계산기 위젯 (요청하신 디자인) */}
+          <div className="bg-[#0b1329] text-white rounded-2xl p-6 md:p-8 shadow-xl space-y-6">
+            
+            {/* 상단 안내 바 */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                  <Icon name="zap" className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base sm:text-lg font-bold">30초 실시간 월급 실수령액 간이 계산기</h3>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-500 text-slate-950 uppercase tracking-wider">Quick</span>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-0.5">숫자만 입력하면 4대보험과 세금이 즉각 계산되어 통장에 찍히는 월 실수령액이 산출됩니다.</p>
+                </div>
+              </div>
+
+              {/* 연봉 기준 / 월급 기준 토글 버튼 */}
+              <div className="flex items-center bg-slate-900 p-1 rounded-xl border border-slate-800 shrink-0 text-xs">
+                <button
+                  type="button"
+                  onClick={() => { setCalcMode('annual'); setAmount(45000000); }}
+                  className={`px-4 py-2 rounded-lg font-bold transition-all cursor-pointer ${calcMode === 'annual' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'}`}
+                >
+                  연봉 기준
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setCalcMode('monthly'); setAmount(3750000); }}
+                  className={`px-4 py-2 rounded-lg font-bold transition-all cursor-pointer ${calcMode === 'monthly' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'}`}
+                >
+                  월급 기준
+                </button>
+              </div>
+            </div>
+
+            {/* 입력 및 결과 그리드 영역 */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+              
+              {/* 좌측 입력 영역 */}
+              <div className="lg:col-span-5 space-y-4">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-300 font-medium">{calcMode === 'annual' ? '연봉 금액 (세전)' : '월 급여 (세전)'}</span>
+                  <span className="text-slate-400 font-mono">월 환산 약 <strong className="text-white">₩ {formatCurrency(quickResult.gross)}</strong></span>
+                </div>
+
+                <div className="bg-slate-900/90 border border-slate-700/80 rounded-xl p-3.5 flex items-center shadow-inner">
+                  <span className="text-emerald-400 font-mono font-bold text-lg mr-2">₩</span>
+                  <input
+                    type="number"
+                    value={amount}
+                    onChange={(e) => setAmount(Number(e.target.value))}
+                    className="w-full bg-transparent text-white font-mono font-bold text-xl focus:outline-none"
+                  />
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setAmount(prev => prev + 10000000)}
+                      className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-[11px] font-medium text-slate-300 transition-colors cursor-pointer"
+                    >
+                      +1,000만원
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAmount(prev => prev + 5000000)}
+                      className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-[11px] font-medium text-slate-300 transition-colors cursor-pointer"
+                    >
+                      +500만원
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAmount(prev => prev + 1000000)}
+                      className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-[11px] font-medium text-slate-300 transition-colors cursor-pointer"
+                    >
+                      +100만원
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setAmount(calcMode === 'annual' ? 45000000 : 3750000)}
+                    className="text-xs text-slate-400 hover:text-white underline cursor-pointer"
+                  >
+                    초기화
+                  </button>
+                </div>
+              </div>
+
+              {/* 우측 결과 출력 카드 영역 */}
+              <div className="lg:col-span-7 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 space-y-4">
+                
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="text-xs text-slate-400 font-medium">예상 월 실수령액 (통장 입금액)</span>
+                  <div className="text-xs font-mono text-slate-400 space-x-2">
+                    <span>원 세전: <strong className="text-slate-200">₩ {formatCurrency(quickResult.gross)}</strong></span>
+                    <span className="text-red-400">총 공제액: - ₩ {formatCurrency(quickResult.totalDeduction)}</span>
+                  </div>
+                </div>
+
+                <div className="text-3xl sm:text-4xl font-black font-mono text-emerald-400 tracking-tight">
+                  ₩ {formatCurrency(quickResult.netPay)}
+                </div>
+
+                {/* 공제 상세 내역 그리드 */}
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-2 border-t border-slate-800 text-xs">
+                  <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/60">
+                    <div className="text-slate-400 text-[10px]">국민연금 (4.5%)</div>
+                    <div className="font-mono font-bold text-slate-200 mt-1">₩ {formatCurrency(quickResult.nationalPension)}</div>
+                  </div>
+                  <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/60">
+                    <div className="text-slate-400 text-[10px]">건강보험 (3.545%)</div>
+                    <div className="font-mono font-bold text-slate-200 mt-1">₩ {formatCurrency(quickResult.healthInsurance)}</div>
+                  </div>
+                  <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/60">
+                    <div className="text-slate-400 text-[10px]">요양보험 (12.95%)</div>
+                    <div className="font-mono font-bold text-slate-200 mt-1">₩ {formatCurrency(quickResult.longTermCare)}</div>
+                  </div>
+                  <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/60">
+                    <div className="text-slate-400 text-[10px]">고용보험 (0.9%)</div>
+                    <div className="font-mono font-bold text-slate-200 mt-1">₩ {formatCurrency(quickResult.employmentInsurance)}</div>
+                  </div>
+                  <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/60 col-span-2 sm:col-span-1">
+                    <div className="text-slate-400 text-[10px]">소득세+지방세</div>
+                    <div className="font-mono font-bold text-slate-200 mt-1">₩ {formatCurrency(quickResult.totalTax)}</div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-1 text-[11px] text-slate-400">
+                  <span>* 식대 20만원 비과세 및 1인 가구 기준 자동 적용</span>
+                  <button type="button" className="text-blue-400 hover:text-blue-300 font-semibold underline cursor-pointer">
+                    부양가족 등 정밀 계산기 열기 →
+                  </button>
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+          {/* 카테고리별 세무 계산기 분류 및 23종 아이콘 카드 그리드 */}
           <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-2xs space-y-6">
             
-            {/* 상단 헤더 및 선택된 카테고리 표시 */}
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <div className="p-2 bg-slate-100 rounded-lg text-slate-700">
@@ -191,7 +363,6 @@
               </div>
             </div>
 
-            {/* 카테고리 필터 버튼 바 */}
             <div className="flex flex-wrap items-center gap-2">
               {CALC_CATEGORIES.map(cat => (
                 <button
@@ -208,7 +379,6 @@
               ))}
             </div>
 
-            {/* 아이콘 카드 그리드 (23종) */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-3">
               {filteredCalcs.map(calc => (
                 <div
@@ -229,7 +399,6 @@
               ))}
             </div>
 
-            {/* 하단 SNS 공유 바 */}
             <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-center gap-3 text-xs text-slate-500">
               <span>친구 및 동료에게 공유하기:</span>
               <div className="flex items-center gap-1.5">
@@ -242,6 +411,7 @@
             </div>
 
           </div>
+
         </div>
       );
     }
