@@ -15,7 +15,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script>
-    // 사용자 제공 Firebase 설정값 초기화
     const firebaseConfig = {
       apiKey: "AIzaSyADCpSb_GjEe6ffPai0pQuIQKcBKDU6CSw",
       authDomain: "tax-one.firebaseapp.com",
@@ -142,7 +141,7 @@
       };
 
       const handleKakaoNaver = (providerName) => {
-        alert(`${providerName} 로그인은 Firebase 콘솔 또는 OIDC 설정 후 연동 가능합니다. (현재 구글 및 이메일 로그인 활성화됨)`);
+        alert(`${providerName} 로그인은 Firebase 콘솔 또는 OIDC 설정 후 연동 가능합니다.`);
       };
 
       if (user) {
@@ -286,11 +285,6 @@
         return { gross, nationalPension, healthInsurance, longTermCare, employmentInsurance, totalTax: estimatedTax + localIncomeTax, totalDeduction, netPay };
       }, [calcMode, amount]);
 
-      const filteredCalcs = useMemo(() => {
-        if (activeCategory === 'all') return ALL_CALCULATORS;
-        return ALL_CALCULATORS.filter(c => c.category === activeCategory);
-      }, [activeCategory]);
-
       return (
         <div className="space-y-6">
           <div className="bg-[#0b1329] text-white rounded-2xl p-6 md:p-8 shadow-xl space-y-6">
@@ -356,7 +350,7 @@
       );
     }
 
-    // 사업자 설정 뷰 컴포넌트 (Firestore 연동)
+    // 사업자 설정 뷰 컴포넌트
     function CompanySettingsView({ company, onSave, user }) {
       const [formData, setFormData] = useState(company);
 
@@ -453,7 +447,7 @@
       );
     }
 
-    // 인증 모달 컴포넌트 (로그인/회원가입)
+    // 인증 모달 컴포넌트
     function AuthModal({ onClose }) {
       const [isSignup, setIsSignup] = useState(false);
       const [email, setEmail] = useState('');
@@ -537,19 +531,16 @@
         email: 'tax@company.com'
       });
 
-      // Firebase 인증 상태 관찰 및 사용자별 데이터 불러오기
       useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
           setUser(currentUser);
           if (currentUser) {
-            // Firestore에서 해당 UID의 사업자 정보 가져오기
             try {
               const docRef = db.collection('users').doc(currentUser.uid).collection('settings').doc('company');
               const docSnap = await docRef.get();
               if (docSnap.exists) {
                 setMyCompany(docSnap.data());
               } else {
-                // 초기 문서 생성
                 await docRef.set(myCompany);
               }
             } catch (e) {
@@ -560,7 +551,6 @@
         return () => unsubscribe();
       }, []);
 
-      // 사업자 정보 저장 함수 (Firestore 연동)
       const handleSaveCompany = async (updated) => {
         setMyCompany(updated);
         if (user) {
@@ -571,7 +561,7 @@
             alert('저장 중 오류 발생: ' + err.message);
           }
         } else {
-          alert('로그인 상태가 아닙니다. 브라우저 로컬 상태만 변경되었습니다.');
+          alert('로그인 상태가 아닙니다. 대시보드 위젯에서 먼저 로그인해주세요.');
         }
       };
 
@@ -593,14 +583,13 @@
                   <button onClick={() => setActiveTab('settings')} className={`py-1 cursor-pointer ${activeTab === 'settings' ? 'text-slate-900 font-bold border-b-2 border-slate-900' : ''}`}>사업자 설정</button>
                 </nav>
 
+                {/* 상단 우측 로그인 버튼을 완전히 제거하고 로그인된 사용자 상태만 표시하거나 깔끔하게 비워둠 */}
                 <div className="flex items-center gap-2.5">
-                  {user ? (
+                  {user && (
                     <div className="flex items-center gap-2 text-xs font-medium">
                       <span className="text-slate-600 font-mono hidden sm:inline">{user.email}님</span>
                       <button onClick={() => auth.signOut()} className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700 cursor-pointer">로그아웃</button>
                     </div>
-                  ) : (
-                    <button onClick={() => setShowAuthModal(true)} className="px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-semibold cursor-pointer">로그인 / 가입</button>
                   )}
                 </div>
               </div>
@@ -619,7 +608,7 @@
                       </div>
                       <h2 className="text-xl sm:text-2xl font-bold tracking-tight">스마트 전자세금계산서 및 23종 세무 포털</h2>
                       <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                        {user ? `현재 계정(${user.email}) 고유 UID 기반으로 데이터가 안전하게 분리 저장됩니다.` : '로그인하시면 계정별 세무 데이터와 사업자 설정이 자동으로 동기화됩니다.'}
+                        {user ? `현재 계정(${user.email}) 고유 UID 기반으로 데이터가 안전하게 분리 저장됩니다.` : '대시보드 우측 위젯을 통해 로그인하시면 계정별 세무 데이터와 사업자 설정이 자동으로 동기화됩니다.'}
                       </p>
                     </div>
                   </div>
