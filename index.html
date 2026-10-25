@@ -1339,61 +1339,246 @@
     }
 
     // 사업자 설정 화면
-    function CompanySettingsView({ company, onSave }) {
-      const [data, setData] = useState(company);
+    <!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>사업자 정보 및 환경 설정 - TaxOne</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome 아이콘 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+  </style>
+</head>
+<body class="bg-[#f8fafc] text-gray-800 p-4 md:p-8 min-h-screen">
 
-      return (
-        <div className="max-w-3xl mx-auto bg-white border border-slate-200 rounded-2xl p-8 shadow-xs space-y-6 text-xs">
-          <div className="border-b pb-4">
-            <h2 className="text-lg font-bold text-slate-900">사업자 정보 및 환경 설정</h2>
-            <p className="text-slate-500 mt-1">세금계산서 작성 시 '공급자' 정보로 자동 반영되는 기본 정보를 관리합니다.</p>
+  <div class="max-w-6xl mx-auto space-y-6">
+    
+    <!-- 페이지 상단 헤더 -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4 border-gray-200">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">사업자 정보 및 환경 설정</h1>
+        <p class="text-sm text-gray-500 mt-1">세금계산서 작성 시 '공급자' 정보로 자동 반영되는 기본 사업자 등록 정보를 관리합니다.</p>
+      </div>
+      <div>
+        <button type="button" class="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-full shadow-sm hover:bg-gray-50">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+          검색엔진 노출(SEO) 미리보기
+        </button>
+      </div>
+    </div>
+
+    <!-- 메인 그리드 레이아웃 (좌측 사이드바 + 우측 폼) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      
+      <!-- [좌측 영역] 카드 묶음 (lg:col-span-4) -->
+      <div class="lg:col-span-4 space-y-6">
+        
+        <!-- 1. 공동인증서(전자세금용) -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
+          <div class="flex items-center gap-2 text-gray-800 font-bold text-sm">
+            <i class="fa-regular fa-circle-check text-blue-600"></i>
+            <span>공동인증서(전자세금용)</span>
           </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="font-semibold text-slate-700 block mb-1">상호명</label>
-              <input type="text" value={data.companyName} onChange={e => setData({...data, companyName: e.target.value})} className="w-full px-3 py-2 border rounded-lg" />
-            </div>
-            <div>
-              <label className="font-semibold text-slate-700 block mb-1">사업자등록번호</label>
-              <input type="text" value={data.bizNumber} onChange={e => setData({...data, bizNumber: e.target.value})} className="w-full px-3 py-2 border rounded-lg font-mono font-bold" />
-            </div>
-            <div>
-              <label className="font-semibold text-slate-700 block mb-1">대표자명</label>
-              <input type="text" value={data.ceoName} onChange={e => setData({...data, ceoName: e.target.value})} className="w-full px-3 py-2 border rounded-lg" />
-            </div>
-            <div>
-              <label className="font-semibold text-slate-700 block mb-1">대표 이메일</label>
-              <input type="email" value={data.email} onChange={e => setData({...data, email: e.target.value})} className="w-full px-3 py-2 border rounded-lg font-mono" />
-            </div>
-            <div className="col-span-2">
-              <label className="font-semibold text-slate-700 block mb-1">사업장 주소</label>
-              <input type="text" value={data.address} onChange={e => setData({...data, address: e.target.value})} className="w-full px-3 py-2 border rounded-lg" />
-            </div>
+          <div class="bg-gray-50/80 border border-gray-200 rounded-lg p-4 text-center">
+            <span class="block font-bold text-gray-700 text-sm">미등록</span>
+            <span class="text-xs text-gray-400 mt-0.5 block">인증서 등록 필요 (발행 시 자동 등록)</span>
           </div>
+          <p class="text-[11px] text-gray-400 leading-relaxed">
+            * 국세청 홈택스 표준 보안 규격에 따라 모든 발행 계산서는 2048bit PKI 전자서명 처리됩니다.
+          </p>
+        </div>
 
-          <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-            <h4 className="font-bold text-slate-800">고객센터 정보 설정</h4>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-[11px] text-slate-600 block mb-1">문의 번호</label>
-                <input type="text" value={data.csPhone} onChange={e => setData({...data, csPhone: e.target.value})} className="w-full px-3 py-2 border rounded-lg bg-white" placeholder="미정" />
+        <!-- 2. 소셜 로그인 연동 관리 -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
+          <h3 class="font-bold text-gray-800 text-sm">소셜 로그인 연동 관리</h3>
+          <div class="space-y-2.5">
+            <!-- Google -->
+            <div class="flex items-center justify-between border border-gray-200 rounded-lg p-2.5 bg-white">
+              <div class="flex items-center gap-3">
+                <div class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center font-bold text-xs text-blue-600">G</div>
+                <div>
+                  <div class="text-xs font-bold text-gray-800">Google 연동</div>
+                  <div class="text-[10px] text-gray-400">미연동</div>
+                </div>
               </div>
-              <div>
-                <label className="text-[11px] text-slate-600 block mb-1">운영시간 / 휴무</label>
-                <input type="text" value={data.csHours} onChange={e => setData({...data, csHours: e.target.value})} className="w-full px-3 py-2 border rounded-lg bg-white" placeholder="미정" />
-              </div>
+              <button class="px-3 py-1 text-xs text-gray-600 border border-gray-300 rounded hover:bg-gray-50">연동하기</button>
             </div>
-          </div>
-
-          <div className="flex justify-end pt-2">
-            <button onClick={() => onSave(data)} className="px-5 py-2.5 bg-slate-900 text-white font-bold text-xs rounded-xl shadow-xs">
-              사업자 정보 변경 저장
-            </button>
+            <!-- 네이버 -->
+            <div class="flex items-center justify-between border border-gray-200 rounded-lg p-2.5 bg-white">
+              <div class="flex items-center gap-3">
+                <div class="w-7 h-7 rounded-full bg-emerald-500 text-white font-bold text-xs flex items-center justify-center">N</div>
+                <div>
+                  <div class="text-xs font-bold text-gray-800">네이버 연동</div>
+                  <div class="text-[10px] text-gray-400">미연동</div>
+                </div>
+              </div>
+              <button class="px-3 py-1 text-xs text-gray-600 border border-gray-300 rounded hover:bg-gray-50">연동하기</button>
+            </div>
+            <!-- 카카오 -->
+            <div class="flex items-center justify-between border border-gray-200 rounded-lg p-2.5 bg-white">
+              <div class="flex items-center gap-3">
+                <div class="w-7 h-7 rounded-full bg-amber-300 font-bold text-xs flex items-center justify-center">K</div>
+                <div>
+                  <div class="text-xs font-bold text-gray-800">카카오 연동</div>
+                  <div class="text-[10px] text-gray-400">미연동</div>
+                </div>
+              </div>
+              <button class="px-3 py-1 text-xs text-gray-700 bg-amber-50 border border-amber-300 rounded hover:bg-amber-100">연동하기</button>
+            </div>
           </div>
         </div>
-      );
-    }
+
+        <!-- 3. 법인 인감 / 직인 도장 -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
+          <h3 class="font-bold text-gray-800 text-sm">법인 인감 / 직인 도장</h3>
+          <div class="flex items-center gap-4">
+            <div class="w-16 h-16 border-2 border-dashed border-gray-300 rounded-full flex flex-col items-center justify-center text-center p-1 text-gray-400">
+              <span class="text-[10px] leading-tight">직인<br>미등록</span>
+            </div>
+            <p class="text-xs text-gray-500 leading-relaxed flex-1">
+              공식 전자세금계산서 서식의 공급자 대표자 성명 옆에 자동 날인됩니다.
+            </p>
+          </div>
+        </div>
+
+        <!-- 4. 고객센터 & 관련 사이트 -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
+          <div class="flex items-center gap-2 text-blue-600 font-bold text-sm">
+            <i class="fa-headphones fa-solid"></i>
+            <span class="text-gray-800">고객센터 & 관련 사이트</span>
+          </div>
+          
+          <div class="bg-gray-50 border border-gray-100 rounded-lg p-3 space-y-2 text-xs">
+            <div class="flex justify-between items-center text-gray-500">
+              <span>문의 번호</span>
+              <span class="bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded text-[10px]">미정</span>
+            </div>
+            <div class="flex justify-between items-center text-gray-500">
+              <span>운영시간 / 휴무</span>
+              <span class="bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded text-[10px]">미정</span>
+            </div>
+            <div class="pt-2 border-t border-gray-200/60">
+              <div class="text-gray-400 mb-1">문의 이메일</div>
+              <a href="mailto:yunt59894@gmail.com" class="text-blue-600 font-semibold hover:underline">yunt59894@gmail.com</a>
+            </div>
+          </div>
+
+          <div class="space-y-2 pt-1 text-xs">
+            <div class="text-gray-400 font-medium text-[11px]">관련 사이트 바로가기</div>
+            <a href="https://www.hometax.go.kr" target="_blank" class="flex justify-between items-center p-2 bg-gray-50 hover:bg-gray-100 rounded text-gray-700">
+              <span>국세청 홈택스 공식 홈페이지</span>
+              <i class="fa-solid fa-arrow-up-right-from-square text-gray-400 text-[10px]"></i>
+            </a>
+            <a href="https://www.nts.go.kr" target="_blank" class="flex justify-between items-center p-2 bg-gray-50 hover:bg-gray-100 rounded text-gray-700">
+              <span>국세청 포털</span>
+              <i class="fa-solid fa-arrow-up-right-from-square text-gray-400 text-[10px]"></i>
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- [우측 영역] 사업자 입력 폼 (lg:col-span-8) -->
+      <div class="lg:col-span-8">
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 md:p-8 space-y-5">
+          
+          <!-- 입력 폼 필드 -->
+          <form class="space-y-5 text-xs">
+            
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+              <!-- 사업자등록번호 -->
+              <div class="sm:col-span-8">
+                <label class="block font-bold text-gray-700 mb-1">사업자등록번호 <span class="text-blue-600">*</span></label>
+                <input type="text" placeholder="000-00-00000" class="w-full border border-gray-300 rounded-lg p-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+              <!-- 종사업장번호 -->
+              <div class="sm:col-span-4">
+                <label class="block font-bold text-gray-700 mb-1">종사업장번호</label>
+                <input type="text" placeholder="선택사항 (4자리)" class="w-full border border-gray-300 rounded-lg p-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- 상호(법인명) -->
+              <div>
+                <label class="block font-bold text-gray-700 mb-1">상호(법인명) <span class="text-blue-600">*</span></label>
+                <input type="text" placeholder="상호 또는 법인명 입력" class="w-full border border-gray-300 rounded-lg p-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+              <!-- 대표자 성명 -->
+              <div>
+                <label class="block font-bold text-gray-700 mb-1">대표자 성명 <span class="text-blue-600">*</span></label>
+                <input type="text" placeholder="대표자 성명 입력" class="w-full border border-gray-300 rounded-lg p-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+            </div>
+
+            <!-- 사업장 기본 주소 -->
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">사업장 기본 주소 <span class="text-blue-600">*</span></label>
+              <input type="text" placeholder="사업장 기본 주소 입력" class="w-full border border-gray-300 rounded-lg p-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- 업태 -->
+              <div>
+                <label class="block font-bold text-gray-700 mb-1">업태 <span class="text-blue-600">*</span></label>
+                <input type="text" placeholder="예: 제조업, 서비스업, 도소매업" class="w-full border border-gray-300 rounded-lg p-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+              <!-- 종목 -->
+              <div>
+                <label class="block font-bold text-gray-700 mb-1">종목 <span class="text-blue-600">*</span></label>
+                <input type="text" placeholder="예: 전자상거래, 소프트웨어 개발" class="w-full border border-gray-300 rounded-lg p-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- 세무/계산서 기본 담당 이메일 -->
+              <div>
+                <label class="block font-bold text-gray-700 mb-1">세무/계산서 기본 담당 이메일 <span class="text-blue-600">*</span></label>
+                <input type="email" placeholder="tax@company.com" class="w-full border border-gray-300 rounded-lg p-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+              <!-- 대표 전화번호 -->
+              <div>
+                <label class="block font-bold text-gray-700 mb-1">대표 전화번호</label>
+                <input type="tel" placeholder="02-1234-5678" class="w-full border border-gray-300 rounded-lg p-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+            </div>
+
+            <!-- 저장 버튼 -->
+            <div class="flex justify-end pt-4">
+              <button type="button" class="inline-flex items-center gap-2 bg-[#0f172a] hover:bg-slate-800 text-white font-semibold text-xs px-5 py-2.5 rounded-lg shadow-md transition">
+                <i class="fa-regular fa-floppy-disk"></i>
+                사업자 정보 변경 저장
+              </button>
+            </div>
+
+          </form>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 하단 홈택스 세무일정 안내 바 -->
+    <div class="bg-white border border-gray-200 rounded-xl p-3.5 px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-sm text-xs">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        <span class="font-bold text-gray-800">홈택스 세무일정 안내:</span>
+        <span class="text-gray-600">2026년도 부가가치세 및 전자세금계산서 발급 원장은 매월 10일까지 작성해야 가산세가 면제됩니다.</span>
+      </div>
+      <a href="https://www.hometax.go.kr" target="_blank" class="text-blue-600 font-semibold hover:underline flex items-center gap-1 self-end sm:self-auto">
+        국세청 홈택스 바로가기
+        <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+      </a>
+    </div>
+
+  </div>
+
+</body>
+</html>
 
     // 전자세금계산서 작성 모달
     function TaxInvoiceModal({ company, kind, onClose, onIssued }) {
