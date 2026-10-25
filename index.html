@@ -24,17 +24,18 @@
   <meta name="naver-site-verification" content="66f674e19652bc4ad3c6b76a93a77b12b5dedf41" />
   <meta name="google-site-verification" content="swvKD7BjLgBfdYGj-hGNLBjwwCneap2egNqkbtvlJlw" />
 
-  <!-- Fonts & Tailwind CSS CDN -->
+  <!-- Fonts & Tailwind CSS CDN (Pretendard & Inter 추가 적용) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           fontFamily: {
-            sans: ['"Noto Sans KR"', 'sans-serif'],
+            sans: ['Pretendard', '"Noto Sans KR"', 'Inter', 'sans-serif'],
             mono: ['"JetBrains Mono"', 'monospace'],
           }
         }
@@ -48,7 +49,7 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
-    body { font-family: 'Noto Sans KR', sans-serif; background-color: #f8fafc; color: #1e293b; }
+    body { font-family: 'Pretendard', 'Noto Sans KR', sans-serif; background-color: #f8fafc; color: #1e293b; letter-spacing: -0.015em; }
     @media print {
       body * { visibility: hidden; }
       #printable-invoice, #printable-invoice * { visibility: visible; }
@@ -69,7 +70,7 @@
         receipt: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />,
         plus: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />,
         shield: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />,
-        lock: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />,
+        lock: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 08-8 0v4h8z" />,
         fileCheck: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />,
         checkCircle: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />,
         sparkles: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />,
@@ -153,6 +154,101 @@
       { id: 'c15', category: 'asset', name: '기타소득세', icon: 'messageSquare', bg: 'bg-blue-500' },
       { id: 'c16', category: 'asset', name: '일용직소득세', icon: 'clock', bg: 'bg-amber-500' },
     ];
+
+    // ----------------------------------------------------
+    // 종합 대시보드 내 내장형 로그인 카드리스트 컴포넌트
+    // ----------------------------------------------------
+    function IntegratedDashboardLogin({ onShowFullAuth }) {
+      const [emailInput, setEmailInput] = useState('');
+      const [pwInput, setPwInput] = useState('');
+
+      const handleSocialLogin = (provider) => {
+        alert(`${provider} 간편 연동 로그인을 진행합니다.`);
+      };
+
+      return (
+        <div className="bg-[#0b1329] border border-slate-800 text-white rounded-2xl p-6 shadow-xl space-y-5 flex flex-col justify-between">
+          <div className="space-y-4">
+            
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-600 shadow-[0_0_8px_rgba(220,38,38,0.8)]"></span>
+                <h3 className="font-bold text-sm tracking-tight text-white">PREMIUM TAX 로그인</h3>
+              </div>
+              <button
+                type="button"
+                onClick={onShowFullAuth}
+                className="text-[11px] text-slate-400 hover:text-white font-medium cursor-pointer"
+              >
+                회원가입 / 재설정 →
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <label className="text-[11px] text-slate-400 font-medium">이메일 주소</label>
+                <input
+                  type="email"
+                  value={emailInput}
+                  onChange={(e) => setEmailInput(e.target.value)}
+                  placeholder="tax@company.com"
+                  className="w-full bg-[#131d3a] border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-600 font-mono transition-colors"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[11px] text-slate-400 font-medium">비밀번호</label>
+                <input
+                  type="password"
+                  value={pwInput}
+                  onChange={(e) => setPwInput(e.target.value)}
+                  placeholder="비밀번호 입력"
+                  className="w-full bg-[#131d3a] border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-600 font-mono transition-colors"
+                />
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => alert('로그인되었습니다.')}
+              className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow-[0_4px_15px_rgba(220,38,38,0.35)] transition-all cursor-pointer"
+            >
+              로그인 접속
+            </button>
+
+          </div>
+
+          {/* 소셜 및 간편 연동 영역 */}
+          <div className="pt-3 border-t border-slate-800/80 space-y-2">
+            <div className="text-[10px] text-slate-400 font-medium text-center">소셜 간편 연동계정 접속</div>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => handleSocialLogin('구글')}
+                className="py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-[11px] font-bold text-slate-200 flex items-center justify-center gap-1 cursor-pointer transition-colors"
+              >
+                <span className="text-blue-400 font-mono">G</span> 구글
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSocialLogin('카카오')}
+                className="py-2 bg-amber-400/90 hover:bg-amber-400 rounded-lg text-[11px] font-bold text-slate-950 flex items-center justify-center gap-1 cursor-pointer transition-colors"
+              >
+                <span>💬</span> 카카오
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSocialLogin('네이버')}
+                className="py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-[11px] font-bold text-white flex items-center justify-center gap-1 cursor-pointer transition-colors"
+              >
+                <span>N</span> 네이버
+              </button>
+            </div>
+          </div>
+
+        </div>
+      );
+    }
 
     // ----------------------------------------------------
     // 세무 계산기 허브 컴포넌트
@@ -587,7 +683,7 @@
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between border border-slate-200 rounded-lg p-2.5 bg-white">
                     <div className="flex items-center gap-3">
-                      <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center font-bold text-xs text-blue-600">G</div>
+                      <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center font-bold text-xs text-blue-600 font-mono">G</div>
                       <div>
                         <div className="text-xs font-bold text-slate-800">Google 연동</div>
                         <div className="text-[10px] text-slate-400">미연동</div>
@@ -1116,21 +1212,15 @@
     }
 
     // ----------------------------------------------------
-    // 이미지 참조 스타일 로그인 / 회원가입 / 비밀번호 재설정 모달 컴포넌트
+    // 고화질 고급 스타일 로그인 / 회원가입 / 비밀번호 재설정 모달 컴포넌트
     // ----------------------------------------------------
     function AuthModal({ onClose }) {
       const [authTab, setAuthTab] = useState('login'); // 'login', 'signup', 'recovery'
-      const [idInput, setIdInput] = useState('');
+      const [emailInput, setEmailInput] = useState('');
       const [pwInput, setPwInput] = useState('');
 
-      const handleQuickLogin = (type) => {
-        if (type === 'admin') {
-          setIdInput('DOKDO한빠');
-          setPwInput('admin1234');
-        } else {
-          setIdInput('DOKDO겨울');
-          setPwInput('user1234');
-        }
+      const handleSocialLogin = (provider) => {
+        alert(`${provider} 간편 소셜 연동 로그인을 진행합니다.`);
       };
 
       return (
@@ -1146,7 +1236,7 @@
               ×
             </button>
 
-            {/* 상단 로고 영역 (참고 이미지 스타일) */}
+            {/* 상단 로고 영역 */}
             <div className="text-center space-y-1 pt-2">
               <h1 className="text-2xl sm:text-3xl font-black italic tracking-wider text-red-600 drop-shadow-[0_0_15px_rgba(220,38,38,0.5)]">
                 PREMIUM TAX
@@ -1161,7 +1251,7 @@
               <button
                 type="button"
                 onClick={() => setAuthTab('login')}
-                className={`pb-3 relative transition-colors cursor-pointer ${authTab === 'login' ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}
+                className={`pb-3 relative transition-colors cursor-pointer ${authTab === 'login' ? 'text-white font-bold' : 'text-slate-500 hover:text-slate-300'}`}
               >
                 로그인
                 {authTab === 'login' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-600 shadow-[0_0_8px_rgba(220,38,38,0.8)]"></div>}
@@ -1169,7 +1259,7 @@
               <button
                 type="button"
                 onClick={() => setAuthTab('signup')}
-                className={`pb-3 relative transition-colors cursor-pointer ${authTab === 'signup' ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}
+                className={`pb-3 relative transition-colors cursor-pointer ${authTab === 'signup' ? 'text-white font-bold' : 'text-slate-500 hover:text-slate-300'}`}
               >
                 회원가입
                 {authTab === 'signup' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-600 shadow-[0_0_8px_rgba(220,38,38,0.8)]"></div>}
@@ -1177,7 +1267,7 @@
               <button
                 type="button"
                 onClick={() => setAuthTab('recovery')}
-                className={`pb-3 relative transition-colors cursor-pointer ${authTab === 'recovery' ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}
+                className={`pb-3 relative transition-colors cursor-pointer ${authTab === 'recovery' ? 'text-white font-bold' : 'text-slate-500 hover:text-slate-300'}`}
               >
                 비밀번호 재설정
                 {authTab === 'recovery' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-600 shadow-[0_0_8px_rgba(220,38,38,0.8)]"></div>}
@@ -1188,18 +1278,18 @@
             {authTab === 'login' && (
               <div className="space-y-4 text-xs">
                 <div className="space-y-1.5">
-                  <label className="text-slate-400 font-medium">닉네임 / 아이디</label>
+                  <label className="text-slate-300 font-medium">이메일 주소</label>
                   <input
-                    type="text"
-                    value={idInput}
-                    onChange={(e) => setIdInput(e.target.value)}
-                    placeholder="닉네임을 입력하세요 (예: DOKDO한빠, 겨울)"
+                    type="email"
+                    value={emailInput}
+                    onChange={(e) => setEmailInput(e.target.value)}
+                    placeholder="이메일 주소를 입력하세요 (예: example@company.com)"
                     className="w-full bg-[#131d3a] border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-red-600 font-mono"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-slate-400 font-medium">비밀번호</label>
+                  <label className="text-slate-300 font-medium">비밀번호</label>
                   <div className="relative">
                     <input
                       type="password"
@@ -1220,25 +1310,35 @@
                   접속하기
                 </button>
 
-                {/* 하단 원클릭 빠른 접속 */}
+                {/* 원클릭 빠른 접속 및 소셜 연동 */}
                 <div className="pt-4 border-t border-slate-800/80 space-y-2.5">
-                  <div className="text-[11px] text-slate-400 flex items-center gap-1 font-medium">
-                    <span className="text-amber-400">⚡</span> 원클릭 빠른 접속:
+                  <div className="text-[11px] text-slate-400 flex items-center justify-between font-medium">
+                    <span className="flex items-center gap-1"><span className="text-amber-400">⚡</span> 원클릭 소셜 간편 연동:</span>
+                    <button type="button" onClick={() => { setEmailInput('DOKDO한빠@tax.com'); setPwInput('admin1234'); }} className="text-xs text-red-400 hover:underline">
+                      👑 운영진 (한빠)
+                    </button>
                   </div>
-                  <div className="grid grid-cols-2 gap-2.5">
+                  <div className="grid grid-cols-3 gap-2">
                     <button
                       type="button"
-                      onClick={() => handleQuickLogin('admin')}
-                      className="py-2.5 px-3 bg-red-600/90 hover:bg-red-600 border border-red-500/50 rounded-xl font-bold text-white flex items-center justify-center gap-1.5 shadow-md cursor-pointer transition-transform hover:scale-[1.02]"
+                      onClick={() => handleSocialLogin('구글')}
+                      className="py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-bold text-slate-100 flex items-center justify-center gap-1.5 shadow-md cursor-pointer transition-transform hover:scale-[1.02]"
                     >
-                      <span>👑</span> 운영진 (한빠)
+                      <span className="text-blue-400 font-mono">G</span> 구글
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleQuickLogin('user')}
-                      className="py-2.5 px-3 bg-red-600/90 hover:bg-red-600 border border-red-500/50 rounded-xl font-bold text-white flex items-center justify-center gap-1.5 shadow-md cursor-pointer transition-transform hover:scale-[1.02]"
+                      onClick={() => handleSocialLogin('카카오')}
+                      className="py-2.5 bg-amber-400/90 hover:bg-amber-400 rounded-xl text-xs font-bold text-slate-950 flex items-center justify-center gap-1.5 shadow-md cursor-pointer transition-transform hover:scale-[1.02]"
                     >
-                      <span>🛡️</span> 일반 (겨울)
+                      <span>💬</span> 카카오
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSocialLogin('네이버')}
+                      className="py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-1.5 shadow-md cursor-pointer transition-transform hover:scale-[1.02]"
+                    >
+                      <span>N</span> 네이버
                     </button>
                   </div>
                 </div>
@@ -1248,15 +1348,15 @@
             {authTab === 'signup' && (
               <div className="space-y-4 text-xs">
                 <div className="space-y-1.5">
-                  <label className="text-slate-400 font-medium">사업자등록번호 또는 닉네임</label>
+                  <label className="text-slate-300 font-medium">담당자 이메일 주소</label>
                   <input
-                    type="text"
-                    placeholder="사용하실 닉네임 또는 사업자번호 입력"
+                    type="email"
+                    placeholder="example@company.com"
                     className="w-full bg-[#131d3a] border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-red-600 font-mono"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-slate-400 font-medium">비밀번호</label>
+                  <label className="text-slate-300 font-medium">비밀번호</label>
                   <input
                     type="password"
                     placeholder="비밀번호 설정"
@@ -1264,10 +1364,10 @@
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-slate-400 font-medium">담당자 이메일</label>
+                  <label className="text-slate-300 font-medium">사업자등록번호</label>
                   <input
-                    type="email"
-                    placeholder="tax@company.com"
+                    type="text"
+                    placeholder="000-00-00000"
                     className="w-full bg-[#131d3a] border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-red-600 font-mono"
                   />
                 </div>
@@ -1284,7 +1384,7 @@
             {authTab === 'recovery' && (
               <div className="space-y-4 text-xs">
                 <div className="space-y-1.5">
-                  <label className="text-slate-400 font-medium">등록된 이메일 주소</label>
+                  <label className="text-slate-300 font-medium">등록된 이메일 주소</label>
                   <input
                     type="email"
                     placeholder="가입 시 등록한 이메일 입력"
@@ -1456,36 +1556,46 @@
             {activeTab === 'dashboard' && (
               <div className="space-y-6">
                 
-                <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white rounded-2xl p-6 sm:p-7 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-6">
-                  <div className="space-y-2">
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-medium border border-emerald-500/30">
-                      <Icon name="shield" className="w-3.5 h-3.5" />
-                      <span>국세청 홈택스 표준 연동 시스템 v3.0</span>
+                {/* 상단 배너 & 내장 로그인 카드 그리드 (국세청 홈택스 메커니즘 참고) */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                  
+                  <div className="lg:col-span-8 bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white rounded-2xl p-6 sm:p-7 shadow-md flex flex-col justify-between space-y-6">
+                    <div className="space-y-2">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-medium border border-emerald-500/30">
+                        <Icon name="shield" className="w-3.5 h-3.5" />
+                        <span>국세청 홈택스 표준 연동 시스템 v3.0</span>
+                      </div>
+                      <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
+                        스마트 전자세금계산서 실시간 발행 및 23종 세무 포털
+                      </h2>
+                      <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                        공동인증서 2048-bit PKI 전자서명 및 실시간 홈택스 전송 지원. 2026년 개정 세법과 4대보험 요율이 100% 반영된 종합 세무 플랫폼입니다.
+                      </p>
                     </div>
-                    <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
-                      스마트 전자세금계산서 실시간 발행 및 23종 세무 포털
-                    </h2>
-                    <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
-                      공동인증서 2048-bit PKI 전자서명 및 실시간 홈택스 전송 지원. 2026년 개정 세법과 4대보험 요율이 100% 반영된 종합 세무 플랫폼입니다.
-                    </p>
+
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => handleCreateInvoice('sales')}
+                        className="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow-2xs transition-transform hover:-translate-y-0.5 cursor-pointer"
+                      >
+                        + 신규 매출 작성
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('calculator')}
+                        className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                      >
+                        23종 계산기 바로가기
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-3 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => handleCreateInvoice('sales')}
-                      className="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow-2xs transition-transform hover:-translate-y-0.5 cursor-pointer"
-                    >
-                      + 신규 매출 작성
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('calculator')}
-                      className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl text-xs font-bold transition-all cursor-pointer"
-                    >
-                      23종 계산기 바로가기
-                    </button>
+                  {/* 대시보드 내 내장 로그인 카드 */}
+                  <div className="lg:col-span-4">
+                    <IntegratedDashboardLogin onShowFullAuth={() => setShowAuthModal(true)} />
                   </div>
+
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1607,7 +1717,7 @@
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 text-xs">
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
+                    <div className="w-7 h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs font-mono">
                       PT
                     </div>
                     <span className="font-bold text-slate-900 text-sm">Premium Tax 전자세금계산서</span>
