@@ -10,26 +10,6 @@
   <!-- Google AdSense -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1573419461895141" crossorigin="anonymous"></script>
 
-  <!-- Firebase App & SDK CDN (Compat) -->
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-  <script>
-    // 전달해주신 Firebase 설정값 초기화
-    const firebaseConfig = {
-      apiKey: "AIzaSyADCpSb_GjEe6ffPai0pQuIQKcBKDU6CSw",
-      authDomain: "tax-one.firebaseapp.com",
-      projectId: "tax-one",
-      storageBucket: "tax-one.firebasestorage.app",
-      messagingSenderId: "683125960537",
-      appId: "1:683125960537:web:8ee92de174309883b9a648",
-      measurementId: "G-89QL2SYHPG"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-  </script>
-
   <!-- Fonts & Tailwind CSS CDN -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -202,12 +182,8 @@
     }
 
     // 사업자 설정 뷰 컴포넌트
-    function CompanySettingsView({ company, onSave, user }) {
+    function CompanySettingsView({ company, onSave }) {
       const [formData, setFormData] = useState(company);
-
-      useEffect(() => {
-        setFormData(company);
-      }, [company]);
 
       const handleChange = (e) => {
         const { name, value } = e.target;
@@ -223,9 +199,7 @@
         <div className="max-w-4xl mx-auto space-y-6">
           <div className="border-b pb-4 border-slate-200">
             <h1 className="text-2xl font-bold text-slate-900">사업자 정보 및 환경 설정</h1>
-            <p className="text-sm text-slate-500 mt-1">
-              {user ? `현재 로그인한 계정(${user.email})의 Firestore DB에 안전하게 동기화됩니다.` : '기본 사업자 정보를 설정하고 브라우저 저장소에 보관합니다.'}
-            </p>
+            <p className="text-sm text-slate-500 mt-1">기본 사업자 정보를 설정하고 브라우저 저장소에 보관합니다.</p>
           </div>
 
           <div className="bg-white rounded-xl border border-slate-200 p-6 md:p-8">
@@ -300,51 +274,23 @@
 
     // 메인 앱 컴포넌트
     function App() {
-      const [user, setUser] = useState(null);
       const [activeTab, setActiveTab] = useState('dashboard');
 
-      const [myCompany, setMyCompany] = useState({
-        companyName: '(주)프리미엄텍스',
-        bizNumber: '123-45-67890',
-        ceoName: '홍길동',
-        address: '서울특별시 영등포구 여의대로 108',
-        email: 'tax@company.com'
+      const [myCompany, setMyCompany] = useState(() => {
+        const saved = localStorage.getItem('premium_tax_company');
+        return saved ? JSON.parse(saved) : {
+          companyName: '(주)프리미엄텍스',
+          bizNumber: '123-45-67890',
+          ceoName: '홍길동',
+          address: '서울특별시 영등포구 여의대로 108',
+          email: 'tax@company.com'
+        };
       });
 
-      // Firebase 인증 및 Firestore 연동
-      useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
-          setUser(currentUser);
-          if (currentUser) {
-            try {
-              const docRef = db.collection('users').doc(currentUser.uid).collection('settings').doc('company');
-              const docSnap = await docRef.get();
-              if (docSnap.exists) {
-                setMyCompany(docSnap.data());
-              } else {
-                await docRef.set(myCompany);
-              }
-            } catch (e) {
-              console.error("데이터 로드 실패:", e);
-            }
-          }
-        });
-        return () => unsubscribe();
-      }, []);
-
-      const handleSaveCompany = async (updated) => {
+      const handleSaveCompany = (updated) => {
         setMyCompany(updated);
-        if (user) {
-          try {
-            await db.collection('users').doc(user.uid).collection('settings').doc('company').set(updated);
-            alert('Firestore DB에 사용자별 사업자 정보가 성공적으로 저장되었습니다.');
-          } catch (err) {
-            alert('저장 중 오류 발생: ' + err.message);
-          }
-        } else {
-          localStorage.setItem('premium_tax_company', JSON.stringify(updated));
-          alert('사업자 정보가 로컬 저장소에 저장되었습니다.');
-        }
+        localStorage.setItem('premium_tax_company', JSON.stringify(updated));
+        alert('사업자 정보가 로컬 저장소에 저장되었습니다.');
       };
 
       return (
@@ -365,14 +311,7 @@
                   <button onClick={() => setActiveTab('settings')} className={`py-1 cursor-pointer ${activeTab === 'settings' ? 'text-slate-900 font-bold border-b-2 border-slate-900' : ''}`}>사업자 설정</button>
                 </nav>
 
-                <div className="flex items-center gap-2.5">
-                  {user && (
-                    <div className="flex items-center gap-2 text-xs font-medium">
-                      <span className="text-slate-600 font-mono hidden sm:inline">{user.email}님</span>
-                      <button onClick={() => auth.signOut()} className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700 cursor-pointer">로그아웃</button>
-                    </div>
-                  )}
-                </div>
+                <div className="flex items-center gap-2.5"></div>
               </div>
             </div>
           </header>
@@ -385,11 +324,11 @@
                     <div className="space-y-2">
                       <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-medium border border-emerald-500/30">
                         <Icon name="shield" className="w-3.5 h-3.5" />
-                        <span>국세청 표준 전자세금계산서 발행 및 세무 포털 (Firebase DB 연동됨)</span>
+                        <span>국세청 표준 전자세금계산서 발행 및 세무 포털</span>
                       </div>
                       <h2 className="text-xl sm:text-2xl font-bold tracking-tight">스마트 전자세금계산서 및 23종 세무 포털</h2>
                       <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                        {user ? `현재 계정(${user.email}) 고유 UID 기반으로 데이터가 안전하게 분리 저장됩니다.` : '실시간 세금계산서 작성 및 23종 세무 계산 기능을 제공하는 전문 솔루션입니다.'}
+                        실시간 세금계산서 작성 및 23종 세무 계산 기능을 제공하는 전문 솔루션입니다.
                       </p>
                     </div>
                   </div>
@@ -400,7 +339,7 @@
 
             {activeTab === 'calculator' && <TaxCalculatorHub />}
 
-            {activeTab === 'settings' && <CompanySettingsView company={myCompany} onSave={handleSaveCompany} user={user} />}
+            {activeTab === 'settings' && <CompanySettingsView company={myCompany} onSave={handleSaveCompany} />}
           </main>
         </div>
       );
