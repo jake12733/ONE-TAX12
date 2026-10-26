@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -44,7 +43,7 @@
     }
   </script>
 
-  <!-- Firebase SDK (compat: 기존 단일 HTML 구조에 맞춘 CDN 방식) -->
+  <!-- Firebase SDK (compat: 기존 로그인 및 회원가입 기능 복원) -->
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
@@ -126,6 +125,8 @@
       };
       return messages[code] || (error && error.message) || '요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.';
     }
+
+
 
     /* =====================================================================
      * [요율 자동 갱신 설정]
@@ -685,17 +686,15 @@
     const formatCurrency = (val) => Number(val || 0).toLocaleString();
 
     /* ---------------- 계산기 공통 UI ---------------- */
-    function NumInput({ value, onChange, step = 1, min, className = '', placeholder }) {
-      const example = placeholder || (min === 55 ? '예: 65' : min === 1 ? '예: 1' : step >= 10000000 ? '예: 50000000' : step >= 1000000 ? '예: 3000000' : step >= 100000 ? '예: 200000' : step >= 10000 ? '예: 200000' : step >= 1000 ? '예: 1000' : step >= 1 ? '예: 10' : '예: 3.5');
+    function NumInput({ value, onChange, step = 1, min, className = '' }) {
       return (
         <input
           type="number"
           step={step}
           min={min}
-          value={value === 0 ? '' : value}
-          placeholder={example}
-          onChange={(e) => onChange(e.target.value === '' ? 0 : Number(e.target.value))}
-          className={`w-full px-3 py-2 border border-slate-300 rounded-xl text-sm font-mono placeholder:text-slate-400 placeholder:opacity-70 focus:ring-2 focus:ring-blue-500 ${className}`}
+          value={value}
+          onChange={(e) => onChange(Number(e.target.value))}
+          className={`w-full px-3 py-2 border border-slate-300 rounded-xl text-sm font-mono focus:ring-2 focus:ring-blue-500 ${className}`}
         />
       );
     }
@@ -798,11 +797,6 @@
       );
     }
 
-
-    // ----------------------------------------------------
-    // 고급 로그인 / 회원가입 UI
-    // 실제 이메일 인증 및 소셜 로그인은 서버와 각 제공자의 OAuth 설정이 필요합니다.
-    // ----------------------------------------------------
     function AuthModal({ onClose }) {
       const [view, setView] = useState('login');
       const [name, setName] = useState('');
@@ -966,147 +960,6 @@
       );
     }
 
-    function StockAssetHub({ onOpenCalculators }) {
-      const [financialIncome, setFinancialIncome] = useState(0);
-      const [activeMarketTab, setActiveMarketTab] = useState('korea');
-      const [activeMarketSymbol, setActiveMarketSymbol] = useState('KRX:KOSPI');
-      const [widgetReady, setWidgetReady] = useState(false);
-      const widgetRef = React.useRef(null);
-      const marketTabs = [
-        { id: 'korea', title: '한국 증시', symbols: [{ symbol: 'KRX:KOSPI', name: 'KOSPI', label: '코스피' }, { symbol: 'KRX:KOSDAQ', name: 'KOSDAQ', label: '코스닥' }] },
-        { id: 'us', title: '미국 주요 지수', symbols: [{ symbol: 'FOREXCOM:SPXUSD', name: 'S&P 500', label: 'S&P 500' }, { symbol: 'NASDAQ:IXIC', name: 'NASDAQ Composite', label: '나스닥 종합' }] },
-        { id: 'fx', title: '환율·금리', symbols: [{ symbol: 'FX_IDC:USDKRW', name: 'USD/KRW', label: '달러/원 환율' }, { symbol: 'TVC:US10Y', name: 'US 10Y Yield', label: '미국 10년물 금리' }] }
-      ];
-
-      useEffect(() => {
-        const host = widgetRef.current;
-        if (!host || !activeMarketSymbol) return undefined;
-        let cancelled = false;
-        setWidgetReady(false);
-        host.innerHTML = '';
-
-        const mount = document.createElement('div');
-        mount.className = 'tradingview-widget-container';
-        mount.style.width = '100%';
-        mount.style.height = '100%';
-        const widget = document.createElement('div');
-        widget.className = 'tradingview-widget-container__widget';
-        widget.style.width = '100%';
-        widget.style.height = '100%';
-        mount.appendChild(widget);
-
-        const script = document.createElement('script');
-        script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
-        script.async = true;
-        script.type = 'text/javascript';
-        script.text = JSON.stringify({
-          autosize: true,
-          symbol: activeMarketSymbol,
-          interval: 'D',
-          timezone: 'Asia/Seoul',
-          theme: 'dark',
-          style: '1',
-          locale: 'kr',
-          allow_symbol_change: false,
-          calendar: false,
-          support_host: 'https://www.tradingview.com'
-        });
-        script.onload = () => { if (!cancelled) setWidgetReady(true); };
-        script.onerror = () => { if (!cancelled) setWidgetReady(false); };
-        mount.appendChild(script);
-        host.appendChild(mount);
-
-        return () => {
-          cancelled = true;
-          script.onload = null;
-          script.onerror = null;
-          if (host) host.innerHTML = '';
-        };
-      }, [activeMarketSymbol]);
-
-      const selectMarketTab = (tab) => {
-        setActiveMarketTab(tab.id);
-        setActiveMarketSymbol(tab.symbols[0].symbol);
-      };
-
-      const money = (v) => (Number(v) || 0).toLocaleString('ko-KR');
-      const income = Math.max(0, Number(financialIncome) || 0);
-      const overThreshold = income > 20000000;
-
-      return (
-        <section className="space-y-5">
-          <div className="rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 p-6 sm:p-7 text-white shadow-sm">
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-              <div className="space-y-2">
-                <span className="inline-flex rounded-full border border-emerald-300/30 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-200">BUSINESS ASSET BRIEFING</span>
-                <h2 className="text-xl sm:text-2xl font-bold tracking-tight">주식·자산 세무 인사이트</h2>
-                <p className="max-w-2xl text-sm leading-6 text-slate-300">사업자 자산 관리에 필요한 시장 흐름과 주식 세금 체크 포인트를 한곳에서 확인하세요. 투자 추천이 아닌 참고용 정보입니다.</p>
-              </div>
-              <button type="button" onClick={onOpenCalculators} className="shrink-0 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-slate-950 hover:bg-slate-100">주식 세무 계산기 보기 →</button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="mb-3 flex items-center gap-2"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-700">₩</span><h3 className="font-bold text-slate-900">주식 양도소득세</h3></div>
-              <p className="text-sm leading-6 text-slate-600">해외주식 연간 손익, 기본공제, 국내 상장주식 대주주 해당 여부를 확인하세요. 매매 전후 세금 계산과 신고 일정 점검에 활용할 수 있습니다.</p>
-              <button type="button" onClick={onOpenCalculators} className="mt-4 text-sm font-bold text-blue-700 hover:text-blue-900">양도세 계산기 열기 →</button>
-            </article>
-            <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="mb-3 flex items-center gap-2"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">↗</span><h3 className="font-bold text-slate-900">배당소득·금융소득 체크</h3></div>
-              <p className="text-sm leading-6 text-slate-600">이자와 배당 등 금융소득 합계가 연간 2,000만 원을 초과하는지 간단히 확인합니다. 실제 과세 여부는 소득 종류와 적용 규정에 따라 달라질 수 있습니다.</p>
-              <label className="mt-4 block text-xs font-semibold text-slate-600">연간 이자·배당 금융소득 (원)</label>
-              <input type="number" min="0" step="10000" value={financialIncome} onChange={(e) => setFinancialIncome(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-slate-500" placeholder="예: 15000000" />
-              <div className={`mt-3 rounded-lg px-3 py-2 text-sm font-semibold ${overThreshold ? 'bg-amber-50 text-amber-800' : 'bg-emerald-50 text-emerald-800'}`}>
-                {overThreshold ? `2,000만 원 초과: ${money(income - 20000000)}원 초과` : `기준까지 ${money(20000000 - income)}원 남음`}
-              </div>
-              <p className="mt-2 text-[11px] leading-5 text-slate-400">간이 확인용이며 종합과세 여부를 확정하는 계산 결과는 아닙니다.</p>
-            </article>
-            <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="mb-3 flex items-center gap-2"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-50 text-violet-700">▦</span><h3 className="font-bold text-slate-900">법인 자금으로 투자할 때</h3></div>
-              <ul className="space-y-2 text-sm leading-6 text-slate-600">
-                <li>• 개인 자금과 법인 자금의 계좌·증빙을 분리</li>
-                <li>• 주식·ETF 취득 및 처분 내역과 수수료 보관</li>
-                <li>• 결산 시 평가·분류 및 세무조정 사항 확인</li>
-              </ul>
-              <p className="mt-3 text-[11px] leading-5 text-slate-400">회계 처리는 금융상품 분류와 법인 상황에 따라 달라지므로 세무 전문가 확인이 필요합니다.</p>
-            </article>
-          </div>
-
-          <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-700/80 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 p-4 shadow-xl shadow-slate-950/10 sm:p-5">
-            <div className="mb-4 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-              <div className="min-w-0">
-                <span className="mb-2 inline-flex rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2.5 py-1 text-[10px] font-bold tracking-[0.14em] text-emerald-200">LIVE MARKET OVERVIEW</span>
-                <h3 className="text-base font-bold tracking-tight text-white sm:text-lg">주요 지수 · 환율 · 금리</h3>
-                <p className="mt-1 max-w-2xl text-xs leading-5 text-slate-400 sm:text-sm">코스피, 코스닥, S&amp;P 500, 달러/원 환율을 한눈에 확인하세요. 시세는 TradingView 및 거래소 제공 기준으로 자동 갱신됩니다.</p>
-              </div>
-              <span className="inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full border border-slate-700 bg-slate-900/70 px-2.5 py-1.5 text-[10px] font-medium text-slate-300 sm:text-[11px]"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span> 참고용 · 투자 권유 아님</span>
-            </div>
-            <div className="min-w-0 overflow-hidden rounded-xl border border-slate-700/70 bg-slate-950/70 p-1 sm:p-2">
-              <div className="mb-3 flex flex-wrap gap-2" role="tablist" aria-label="시장 구분">
-                {marketTabs.map((tab) => <button key={tab.id} type="button" role="tab" aria-selected={activeMarketTab === tab.id} onClick={() => selectMarketTab(tab)} className={`rounded-lg border px-3 py-2 text-xs font-bold transition sm:text-sm ${activeMarketTab === tab.id ? 'border-emerald-300/40 bg-emerald-300/15 text-emerald-100' : 'border-slate-700 bg-slate-900/70 text-slate-400 hover:border-slate-500 hover:text-slate-200'}`}>{tab.title}</button>)}
-              </div>
-              <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4" role="group" aria-label="지수 및 시장 선택">
-                {(marketTabs.find((tab) => tab.id === activeMarketTab)?.symbols || []).map((item) => <button key={item.symbol} type="button" onClick={() => setActiveMarketSymbol(item.symbol)} aria-pressed={activeMarketSymbol === item.symbol} className={`min-w-0 rounded-lg border px-3 py-2.5 text-left transition ${activeMarketSymbol === item.symbol ? 'border-emerald-300/50 bg-emerald-300/10 text-white' : 'border-slate-700/80 bg-slate-900/60 text-slate-300 hover:border-slate-500'}`}><span className="block truncate text-xs font-bold sm:text-sm">{item.label}</span><span className="mt-1 block truncate text-[10px] text-slate-500">{item.symbol}</span></button>)}
-              </div>
-              <div className="relative min-w-0 overflow-hidden rounded-lg" style={{ height: 'clamp(320px, 52vw, 520px)' }}>
-                {!widgetReady && <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-slate-950/70 px-4 text-center text-xs leading-5 text-slate-400 sm:text-sm">{activeMarketSymbol} 차트를 불러오는 중입니다…<br />외부 위젯이 차단되었거나 해당 심볼을 제공하지 않는 경우 표시되지 않을 수 있습니다.</div>}
-                <div ref={widgetRef} className="tradingview-responsive-widget h-full w-full min-w-0 overflow-hidden" />
-              </div>
-            </div>
-            <p className="mt-3 text-[10px] leading-4 text-slate-500">시세 갱신 주기와 지연 여부는 각 거래소 및 TradingView의 데이터 제공 조건에 따릅니다.</p>
-          </div>
-
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
-            <h3 className="font-bold text-slate-900">주식 정보에서 세무 서비스로</h3>
-            <p className="mt-1 text-sm leading-6 text-slate-600">주식 양도세·배당소득 관련 내용을 확인한 뒤, 세무 계산기와 사업자용 전자세금계산서 기능을 이어서 이용할 수 있습니다.</p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <button type="button" onClick={onOpenCalculators} className="rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-bold text-white hover:bg-slate-800">세무 계산기 바로가기</button>
-            </div>
-          </div>
-        </section>
-      );
-    }
 
     function App() {
       const cfg = useCfg();
@@ -1116,37 +969,19 @@
       const [policyModalKey, setPolicyModalKey] = useState(null);
       const [showAuthModal, setShowAuthModal] = useState(false);
       const [showCertModal, setShowCertModal] = useState(false);
-      const [authUser, setAuthUser] = useState(null);
-
-      useEffect(() => {
-        if (!firebaseAuth) return undefined;
-        return firebaseAuth.onAuthStateChanged((user) => {
-          setAuthUser(user || null);
-          // Firebase가 로그인 완료를 확인하면 모달을 닫아 처리 중 화면에 갇히지 않게 합니다.
-          if (user) setShowAuthModal(false);
-        });
-      }, []);
-
-      const handleLogout = async () => {
-        try {
-          if (firebaseAuth) await firebaseAuth.signOut();
-        } catch (err) {
-          alert(firebaseErrorMessage(err));
-        }
-      };
 
       const [myCompany, setMyCompany] = useState(() => {
         const saved = localStorage.getItem('taxone_company');
         return saved ? JSON.parse(saved) : {
-          companyName: '',
-          bizNumber: '',
-          ceoName: '',
-          address: '',
+          companyName: '(주)텍스원',
+          bizNumber: '123-45-67890',
+          ceoName: '홍길동',
+          address: '서울특별시 영등포구 여의대로 108 파크원 타워 14층',
           bizType: '서비스 / IT',
           bizItem: '소프트웨어 개발 및 자문',
-          email: '',
-          csPhone: '',
-          csHours: ''
+          email: 'yunt59894@gmail.com',
+          csPhone: '미정',
+          csHours: '미정'
         };
       });
 
@@ -1154,50 +989,6 @@
         const saved = localStorage.getItem('taxone_invoices');
         return saved ? JSON.parse(saved) : [];
       });
-      const [cloudDataReadyUid, setCloudDataReadyUid] = useState('');
-
-      // 로그인한 사용자의 사업자 설정과 세금계산서 내역을 Firestore에서 불러옵니다.
-      useEffect(() => {
-        if (!authUser || !firebaseDb) {
-          setCloudDataReadyUid('');
-          return undefined;
-        }
-        let cancelled = false;
-        setCloudDataReadyUid('');
-        firebaseDb.collection('users').doc(authUser.uid).collection('appData').doc('main').get()
-          .then((snapshot) => {
-            if (cancelled) return;
-            if (snapshot.exists) {
-              const cloudData = snapshot.data() || {};
-              if (cloudData.company && typeof cloudData.company === 'object') {
-                setMyCompany(cloudData.company);
-                try { localStorage.setItem('taxone_company', JSON.stringify(cloudData.company)); } catch (_) {}
-              }
-              if (Array.isArray(cloudData.invoices)) {
-                setInvoices(cloudData.invoices);
-                try { localStorage.setItem('taxone_invoices', JSON.stringify(cloudData.invoices)); } catch (_) {}
-              }
-            }
-            setCloudDataReadyUid(authUser.uid);
-          })
-          .catch((err) => {
-            console.error('Firestore 데이터 불러오기 실패:', err);
-            if (!cancelled) setCloudDataReadyUid(authUser.uid);
-          });
-        return () => { cancelled = true; };
-      }, [authUser && authUser.uid]);
-
-      // 로그인 사용자의 데이터 변경을 Firestore에 저장합니다. 비로그인 시에는 기존 localStorage 동작을 유지합니다.
-      useEffect(() => {
-        if (!authUser || !firebaseDb || cloudDataReadyUid !== authUser.uid) return;
-        firebaseDb.collection('users').doc(authUser.uid).collection('appData').doc('main').set({
-          company: myCompany,
-          invoices: invoices,
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true }).catch((err) => {
-          console.error('Firestore 데이터 저장 실패:', err);
-        });
-      }, [authUser && authUser.uid, cloudDataReadyUid, myCompany, invoices]);
 
       const handleCreateInvoice = (kind = 'sales') => {
         setFormKind(kind);
@@ -1210,14 +1001,14 @@
           {/* Header */}
           <header className="sticky top-0 z-40 bg-white border-b border-slate-200 no-print">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center justify-between gap-3 min-h-16 py-2 sm:py-0">
+              <div className="flex items-center justify-between gap-8 h-16">
                 
                 {/* Brand Logo */}
                 <div className="flex items-center gap-2.5 shrink-0 cursor-pointer" onClick={() => setActiveTab('dashboard')}>
                   <div className="w-9 h-9 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold shadow-xs">
                     <Icon name="receipt" className="w-5 h-5 text-emerald-400" />
                   </div>
-                  <span className="hidden sm:inline text-lg font-bold tracking-tight text-slate-900 whitespace-nowrap">
+                  <span className="text-lg font-bold tracking-tight text-slate-900 whitespace-nowrap">
                     Premium Tax 전자세금계산서
                   </span>
                 </div>
@@ -1243,16 +1034,6 @@
                   >
                     <span>세무 계산기</span>
                     <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-100 text-emerald-800 font-black">23종</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('stocks')}
-                    className={`hover:text-slate-900 transition-colors whitespace-nowrap py-1 ${
-                      activeTab === 'stocks' ? 'text-slate-900 font-bold border-b-2 border-slate-900' : ''
-                    }`}
-                  >
-                    주식·자산 정보
                   </button>
 
                   <button
@@ -1307,33 +1088,23 @@
                 </nav>
 
                 {/* Right Action Buttons */}
-                <div className="ml-auto flex items-center justify-end gap-2 sm:gap-2.5 shrink-0">
+                <div className="flex items-center gap-2.5">
                   <button
                     type="button"
                     onClick={() => handleCreateInvoice('sales')}
-                    className="inline-flex items-center justify-center gap-1 px-2.5 sm:px-3.5 py-2.5 bg-slate-950 hover:bg-slate-800 text-white rounded-xl text-[11px] sm:text-xs font-bold tracking-tight shadow-sm transition-colors cursor-pointer whitespace-nowrap"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer"
                   >
                     <Icon name="plus" className="w-3.5 h-3.5" />
-                    <span className="sm:inline leading-tight">세금계산서 작성</span>
+                    <span className="hidden sm:inline">세금계산서 작성</span>
                   </button>
 
-                  {authUser ? (
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <div className="flex w-[76px] sm:w-auto sm:max-w-[220px] shrink-0 flex-col text-left leading-tight">
-                        <span className="text-[12px] sm:text-xs font-bold tracking-tight text-slate-900 whitespace-nowrap">{authUser.displayName || (authUser.email ? authUser.email.split('@')[0] : '사용자')}</span>
-                        <span className="mt-1 text-[9px] sm:text-[10px] font-medium text-slate-500 whitespace-nowrap overflow-hidden text-ellipsis" title={`사업자: ${myCompany.companyName?.trim() || '정보 미등록'}`}>사업자 정보 · {myCompany.companyName?.trim() || '미등록'}</span>
-                      </div>
-                      <button type="button" onClick={handleLogout} className="inline-flex shrink-0 items-center justify-center px-2.5 sm:px-3 py-2 border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-xl text-[11px] sm:text-xs font-semibold tracking-tight transition-colors cursor-pointer whitespace-nowrap">로그아웃</button>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => setShowAuthModal(true)}
-                      className="inline-flex items-center gap-1 px-3 py-2 border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-medium transition-colors cursor-pointer"
-                    >
-                      <span>로그인</span>
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => setShowAuthModal(true)}
+                    className="inline-flex items-center gap-1 px-3 py-2 border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-medium transition-colors cursor-pointer"
+                  >
+                    <span>로그인</span>
+                  </button>
                 </div>
 
               </div>
@@ -1427,20 +1198,7 @@
 
                 {/* 4. TaxCalculatorHub */}
                 <TaxCalculatorHub />
-
-                {/* 5. 주식·자산 세무 정보 바로가기 */}
-                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div>
-                    <h3 className="font-bold text-slate-900">주식·자산 세무 인사이트</h3>
-                    <p className="mt-1 text-sm text-slate-500">주요 지수·환율, 주식 양도소득세, 배당 금융소득 체크와 법인 투자 참고사항</p>
-                  </div>
-                  <button type="button" onClick={() => setActiveTab('stocks')} className="rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-bold text-white hover:bg-slate-800">주식 정보 확인 →</button>
-                </div>
               </div>
-            )}
-
-            {activeTab === 'stocks' && (
-              <StockAssetHub onOpenCalculators={() => setActiveTab('calculator')} />
             )}
 
             {activeTab === 'calculator' && (
@@ -1581,7 +1339,7 @@
             <PolicyModal policyKey={policyModalKey} onClose={() => setPolicyModalKey(null)} email={myCompany.email} />
           )}
 
-          {/* Firebase 이메일 인증 및 로그인 제공자 모달 */}
+          {/* 이전 디자인의 로그인 / 회원가입 모달 복원 */}
           {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
 
         </div>
@@ -1598,7 +1356,7 @@
 
       // Quick mini calculator state
       const [quickMode, setQuickMode] = useState('annual');
-const [quickAmount, setQuickAmount] = useState(0);
+      const [quickAmount, setQuickAmount] = useState(45000000);
 
       const quickResult = useMemo(() => {
         const gross = quickMode === 'annual' ? Math.floor(quickAmount / 12) : Number(quickAmount) || 0;
@@ -1845,10 +1603,9 @@ const [quickAmount, setQuickAmount] = useState(0);
                   <input
                     type="number"
                     step="100000"
-                    value={quickAmount === 0 ? '' : quickAmount}
-                    placeholder="예: 45000000"
-                    onChange={(e) => setQuickAmount(e.target.value === '' ? 0 : Number(e.target.value))}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-lg font-bold font-mono text-white placeholder:text-slate-500 placeholder:opacity-70 focus:outline-none focus:border-blue-500"
+                    value={quickAmount}
+                    onChange={(e) => setQuickAmount(Number(e.target.value))}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-lg font-bold font-mono text-white focus:outline-none focus:border-blue-500"
                   />
                   <span className="absolute right-4 top-3 text-sm text-slate-400 font-medium">원</span>
                 </div>
@@ -2097,10 +1854,10 @@ const [quickAmount, setQuickAmount] = useState(0);
       const isMonthly = calcId === 'monthly_salary';
       const currentTitle = `${cfg.year}년 ${isMonthly ? '월급' : '연봉'} 실수령액 정밀 계산기`;
       const [salaryType, setSalaryType] = useState(isMonthly ? 'month' : 'year');
-const [amount, setAmount] = useState(0);
-const [nonTax, setNonTax] = useState(0);
-const [familyCount, setFamilyCount] = useState(0);
-const [childCount, setChildCount] = useState(0);
+      const [amount, setAmount] = useState(isMonthly ? 4000000 : 48000000);
+      const [nonTax, setNonTax] = useState(cfg.earned.nonTaxable.meal);
+      const [familyCount, setFamilyCount] = useState(1);
+      const [childCount, setChildCount] = useState(0);
 
       const switchType = (t) => {
         if (t === salaryType) return;
@@ -2137,9 +1894,8 @@ const [childCount, setChildCount] = useState(0);
                 <input
                   type="number"
                   step="100000"
-                  value={amount === 0 ? '' : amount}
-                  placeholder="예: 48000000"
-                  onChange={(e) => setAmount(e.target.value === '' ? 0 : Number(e.target.value))}
+                  value={amount}
+                  onChange={(e) => setAmount(Number(e.target.value))}
                   className="w-full bg-slate-950 text-white placeholder:text-slate-500 px-3.5 py-2.5 text-sm font-bold font-mono border border-slate-700 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30"
                 />
               </Field>
@@ -2182,9 +1938,9 @@ const [childCount, setChildCount] = useState(0);
 
     function EarnedTaxCalc() {
       const cfg = useCfg();
-const [pay, setPay] = useState(0);
-const [family, setFamily] = useState(0);
-const [kids, setKids] = useState(0);
+      const [pay, setPay] = useState(3000000);
+      const [family, setFamily] = useState(1);
+      const [kids, setKids] = useState(0);
       const [ratio, setRatio] = useState(1);
       const k = Math.min(Math.max(0, kids), Math.max(0, family - 1));
       const et = earnedTaxMonthly(cfg, pay, family, k, ratio);
@@ -2230,9 +1986,9 @@ const [kids, setKids] = useState(0);
 
     function HourlyWageCalc() {
       const cfg = useCfg();
-const [hourly, setHourly] = useState(0);
-const [weekly, setWeekly] = useState(0);
-const [days, setDays] = useState(0);
+      const [hourly, setHourly] = useState(cfg.minWage.hourly);
+      const [weekly, setWeekly] = useState(40);
+      const [days, setDays] = useState(5);
       const h = monthlyPaidHours(weekly);
       const dailyHours = days > 0 ? weekly / days : 0;
       const weeklyHolidayPay = Math.floor(hourly * h.holiday);
@@ -2273,13 +2029,13 @@ const [days, setDays] = useState(0);
 
     function WorkAllowanceCalc() {
       const cfg = useCfg();
-const [hourly, setHourly] = useState(0);
-const [weekly, setWeekly] = useState(0);
+      const [hourly, setHourly] = useState(cfg.minWage.hourly);
+      const [weekly, setWeekly] = useState(40);
       const [over5, setOver5] = useState(true);
-const [ext, setExt] = useState(0);
-const [night, setNight] = useState(0);
-const [hol8, setHol8] = useState(0);
-const [holOver, setHolOver] = useState(0);
+      const [ext, setExt] = useState(10);
+      const [night, setNight] = useState(0);
+      const [hol8, setHol8] = useState(0);
+      const [holOver, setHolOver] = useState(0);
       const h = monthlyPaidHours(weekly);
       const weeks = 365 / 7 / 12;
       const holidayPay = Math.floor(hourly * h.holiday * weeks);
@@ -2327,8 +2083,8 @@ const [holOver, setHolOver] = useState(0);
 
     function DailyWorkerCalc() {
       const cfg = useCfg();
-const [daily, setDaily] = useState(0);
-const [days, setDays] = useState(0);
+      const [daily, setDaily] = useState(200000);
+      const [days, setDays] = useState(20);
       const r = dailyWorkerTax(cfg, daily);
       const d = cfg.earned.dailyWorker;
       return (
@@ -2358,10 +2114,10 @@ const [days, setDays] = useState(0);
     /* ============ 소득세 계열 ============ */
     function FreelanceCalc() {
       const cfg = useCfg();
-const [revenue, setRevenue] = useState(0);
-const [expenseRate, setExpenseRate] = useState(0);
-const [family, setFamily] = useState(0);
-const [pensionPaid, setPensionPaid] = useState(0);
+      const [revenue, setRevenue] = useState(36000000);
+      const [expenseRate, setExpenseRate] = useState(64.1);
+      const [family, setFamily] = useState(1);
+      const [pensionPaid, setPensionPaid] = useState(0);
       const f = cfg.freelance;
       const withheldTax = Math.floor(revenue * f.incomeRate);
       const withheldLocal = Math.floor(withheldTax * f.localRate);
@@ -2404,8 +2160,8 @@ const [pensionPaid, setPensionPaid] = useState(0);
     function OtherIncomeCalc() {
       const cfg = useCfg();
       const o = cfg.other;
-const [amount, setAmount] = useState(0);
-const [expRate, setExpRate] = useState(0);
+      const [amount, setAmount] = useState(1000000);
+      const [expRate, setExpRate] = useState(o.expenseRate * 100);
       const income = Math.max(0, amount - Math.floor(amount * (expRate / 100)));
       const exempt = income <= o.minIncome;
       const tax = exempt ? 0 : Math.floor(income * o.rate);
@@ -2441,10 +2197,10 @@ const [expRate, setExpRate] = useState(0);
 
     function GlobalIncomeCalc() {
       const cfg = useCfg();
-const [income, setIncome] = useState(0);
-const [family, setFamily] = useState(0);
-const [otherDed, setOtherDed] = useState(0);
-const [credit, setCredit] = useState(0);
+      const [income, setIncome] = useState(60000000);
+      const [family, setFamily] = useState(1);
+      const [otherDed, setOtherDed] = useState(0);
+      const [credit, setCredit] = useState(0);
       const personal = cfg.earned.basicPerPerson * Math.max(1, family);
       const base = Math.max(0, income - personal - otherDed);
       const br = bracketTax(cfg.incomeTax.brackets, base);
@@ -2485,9 +2241,9 @@ const [credit, setCredit] = useState(0);
       const cfg = useCfg();
       const p = cfg.penalty;
       const [type, setType] = useState('noFiling');
-const [amount, setAmount] = useState(0);
-const [unpaid, setUnpaid] = useState(0);
-const [days, setDays] = useState(0);
+      const [amount, setAmount] = useState(5000000);
+      const [unpaid, setUnpaid] = useState(5000000);
+      const [days, setDays] = useState(30);
       const [redIdx, setRedIdx] = useState(-1);
       const kinds = {
         noFiling: { label: '일반 무신고 (납부세액의 20%)', rate: p.noFiling, list: p.lateFiling, reduceName: '기한후신고 감면(무신고가산세)' },
@@ -2543,8 +2299,8 @@ const [days, setDays] = useState(0);
 
     function CorporateCalc() {
       const cfg = useCfg();
-const [base, setBase] = useState(0);
-const [credit, setCredit] = useState(0);
+      const [base, setBase] = useState(500000000);
+      const [credit, setCredit] = useState(0);
       const br = bracketTax(cfg.corporate.brackets, base);
       const decided = Math.max(0, br.tax - credit);
       const local = Math.floor(decided * cfg.corporate.localRate);
@@ -2579,9 +2335,9 @@ const [credit, setCredit] = useState(0);
       const cfg = useCfg();
       const [start, setStart] = useState('2023-03-02');
       const [end, setEnd] = useState('2026-09-30');
-const [pay3, setPay3] = useState(0);
-const [bonus, setBonus] = useState(0);
-const [leave, setLeave] = useState(0);
+      const [pay3, setPay3] = useState(11400000);
+      const [bonus, setBonus] = useState(3000000);
+      const [leave, setLeave] = useState(0);
       const s = parseDate(start), e = parseDate(end);
       const valid = !!s && !!e && e >= s;
       const totalDays = valid ? dayDiff(s, e) + 1 : 0;
@@ -2636,7 +2392,7 @@ const [leave, setLeave] = useState(0);
 
     function SeveranceTaxCalc() {
       const cfg = useCfg();
-const [pay, setPay] = useState(0);
+      const [pay, setPay] = useState(100000000);
       const [start, setStart] = useState('2016-03-02');
       const [end, setEnd] = useState('2026-09-30');
       const svc = serviceYears(start, end);
@@ -2675,11 +2431,11 @@ const [pay, setPay] = useState(0);
     function RealEstateCalc() {
       const cfg = useCfg();
       const [type, setType] = useState('house');
-const [sale, setSale] = useState(0);
-const [buy, setBuy] = useState(0);
-const [exp, setExp] = useState(0);
-const [holdYears, setHoldYears] = useState(0);
-const [liveYears, setLiveYears] = useState(0);
+      const [sale, setSale] = useState(900000000);
+      const [buy, setBuy] = useState(600000000);
+      const [exp, setExp] = useState(20000000);
+      const [holdYears, setHoldYears] = useState(5);
+      const [liveYears, setLiveYears] = useState(5);
       const [single, setSingle] = useState(false);
       const r = capitalGainsTax(cfg, { type, sale, buy, expense: exp, holdYears, liveYears, singleHome: single });
       return (
@@ -2729,8 +2485,8 @@ const [liveYears, setLiveYears] = useState(0);
     function StockCalc() {
       const cfg = useCfg();
       const [kind, setKind] = useState('overseas');
-const [gain, setGain] = useState(0);
-const [holding, setHolding] = useState(0);
+      const [gain, setGain] = useState(30000000);
+      const [holding, setHolding] = useState(6000000000);
       const r = stockTax(cfg, { kind, gain, holding });
       const s = cfg.stock;
       return (
@@ -2793,9 +2549,9 @@ const [holding, setHolding] = useState(0);
 
     function FinancialGlobalCalc() {
       const cfg = useCfg();
-const [interest, setInterest] = useState(0);
-const [dividend, setDividend] = useState(0);
-const [other, setOther] = useState(0);
+      const [interest, setInterest] = useState(10000000);
+      const [dividend, setDividend] = useState(20000000);
+      const [other, setOther] = useState(40000000);
       const r = financialGlobalTax(cfg, { interest, dividend, otherBase: other });
       return (
         <CalcShell
@@ -2831,9 +2587,9 @@ const [other, setOther] = useState(0);
     function InterestCalc() {
       const cfg = useCfg();
       const f = cfg.financial;
-const [principal, setPrincipal] = useState(0);
-const [rate, setRate] = useState(0);
-const [months, setMonths] = useState(0);
+      const [principal, setPrincipal] = useState(50000000);
+      const [rate, setRate] = useState(3.5);
+      const [months, setMonths] = useState(12);
       const [mode, setMode] = useState('normal');
       const gross = Math.floor(principal * (rate / 100) * (months / 12));
       const taxRate = mode === 'exempt' ? 0 : f.withholdingRate;
@@ -2873,8 +2629,8 @@ const [months, setMonths] = useState(0);
     function DividendCalc() {
       const cfg = useCfg();
       const f = cfg.financial;
-const [amount, setAmount] = useState(0);
-const [foreignTax, setForeignTax] = useState(0);
+      const [amount, setAmount] = useState(5000000);
+      const [foreignTax, setForeignTax] = useState(0);
       const rate = f.withholdingRate * (1 + f.localRate);
       const tax = Math.floor(amount * f.withholdingRate);
       const local = Math.floor(tax * f.localRate);
@@ -2904,9 +2660,9 @@ const [foreignTax, setForeignTax] = useState(0);
     function PensionCalc() {
       const cfg = useCfg();
       const p = cfg.pension;
-const [amount, setAmount] = useState(0);
-const [age, setAge] = useState(0);
-const [other, setOther] = useState(0);
+      const [amount, setAmount] = useState(12000000);
+      const [age, setAge] = useState(65);
+      const [other, setOther] = useState(30000000);
       const rate = pensionRate(cfg, age);
       const over = amount > p.separateLimit;
       const lowTax = Math.floor(amount * rate);
@@ -2945,8 +2701,8 @@ const [other, setOther] = useState(0);
 
     function BizCodeInfo() {
       const cfg = useCfg();
-const [rev, setRev] = useState(0);
-const [rate, setRate] = useState(0);
+      const [rev, setRev] = useState(50000000);
+      const [rate, setRate] = useState(64.1);
       const exp = Math.floor(rev * (rate / 100));
       return (
         <CalcShell
@@ -2981,9 +2737,9 @@ const [rate, setRate] = useState(0);
     function InsuranceDetailCalc() {
       const cfg = useCfg();
       const i = cfg.insurance;
-const [pay, setPay] = useState(0);
+      const [pay, setPay] = useState(3000000);
       const [stabIdx, setStabIdx] = useState(0);
-const [industrial, setIndustrial] = useState(0);
+      const [industrial, setIndustrial] = useState(i.industrialDefault * 100);
       const ee = calcInsurance(cfg, pay);
       const er = calcEmployerInsurance(cfg, pay, i.employment.stability[stabIdx].rate, industrial / 100);
       const currentTitle = `${cfg.year}년 4대보험 근로자/사업주 분담비율 계산`;
@@ -2996,7 +2752,7 @@ const [industrial, setIndustrial] = useState(0);
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
             <Field label="월 보수월액 (세전 비과세 제외)">
-              <input type="number" value={pay === 0 ? '' : pay} placeholder="예: 3000000" onChange={(e) => setPay(e.target.value === '' ? 0 : Number(e.target.value))} className="w-full px-3.5 py-2.5 text-sm font-bold border border-slate-300 rounded-xl placeholder:text-slate-400 placeholder:opacity-70" />
+              <input type="number" value={pay} onChange={(e) => setPay(Number(e.target.value))} className="w-full px-3.5 py-2.5 text-sm font-bold border border-slate-300 rounded-xl" />
             </Field>
             <Field label="사업장 규모 (고용안정·직업능력개발)" hint="사업주만 부담하는 요율이 달라집니다.">
               <select value={stabIdx} onChange={(e) => setStabIdx(Number(e.target.value))} className="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm">
@@ -3044,8 +2800,8 @@ const [industrial, setIndustrial] = useState(0);
       const cfg = useCfg();
       const r = cfg.insurance.regional;
       const h = cfg.insurance.health;
-const [income, setIncome] = useState(0);
-const [points, setPoints] = useState(0);
+      const [income, setIncome] = useState(24000000);
+      const [points, setPoints] = useState(0);
       const incomePremium = Math.floor((income / 12) * h.rate);
       const propertyPremium = Math.floor(points * r.pointValue);
       let health = floorTo(incomePremium + propertyPremium, 10);
@@ -3157,29 +2913,35 @@ const [points, setPoints] = useState(0);
       const cfg = useCfg();
       const ei = cfg.einvoice;
       const articles = [
-        {
-          id: 1,
-          title: `${cfg.year}년 전자세금계산서 의무발행 대상 및 미발행 가산세 총정리`,
-          date: '2026.01.15',
-          category: '전자세금계산서',
-          summary: `모든 법인사업자와 직전 연도 사업장별 공급가액(과세+면세) 합계액 ${unitText(ei.mandatoryIndividual)} 이상 개인사업자의 의무 발급 기준과 미발급 ${pctText(ei.none, 0)} 가산세 규정을 상세 해설합니다.`,
-          content: `부가가치세법 제32조 및 시행령 제68조에 따라 법인사업자는 전부 의무발행 대상이며, 개인사업자는 직전 연도 사업장별 공급가액 합계액이 ${unitText(ei.mandatoryIndividual)} 이상이면 의무발행 대상이 됩니다. 세금계산서는 공급시기가 속하는 달의 다음 달 10일까지 발급해야 하며, 발급명세는 발급일의 다음 날까지 국세청에 전송해야 합니다. 가산세는 지연발급 ${pctText(ei.late, 0)}, 미발급 ${pctText(ei.none, 0)}, 지연전송 ${pctText(ei.delayTransmit, 1)}, 미전송 ${pctText(ei.noTransmit, 1)}입니다(부가가치세법 제60조).`
-        },
-        {
-          id: 2,
-          title: '부가가치세 신고 기간 및 매입세액 불공제 주의사항 5가지',
-          date: '2026.01.20',
-          category: '부가가치세',
-          summary: '일반과세자 1월·7월 확정신고 시 가장 흔히 실수하는 비영업용 소형승용차, 접대비, 사업 무관 지출 등 매입세액 불공제 항목을 점검합니다.',
-          content: '부가가치세법 제39조에 따라 ① 개별소비세 과세대상인 비영업용 소형승용차의 구입·유지·임차 ② 접대비 및 이와 유사한 비용 ③ 사업과 직접 관련이 없는 지출 ④ 세금계산서 필요적 기재사항이 누락되거나 사실과 다른 경우 ⑤ 사업자등록 전 매입세액은 공제받을 수 없습니다. 다만 공급시기가 속하는 과세기간이 끝난 후 20일 이내에 사업자등록을 신청한 경우 등록 전 매입세액은 공제받을 수 있습니다.'
-        }
+        { id: 1, title: '전자세금계산서 발급 의무와 전송기한', category: '전자세금계산서', summary: '발급 대상, 작성일자, 발급·전송 시점과 미발급 위험을 확인합니다.', content: '법인사업자는 원칙적으로 전자세금계산서를 발급해야 하며, 개인사업자는 직전연도 공급가액 등 법정 기준에 따라 의무발급 대상이 정해집니다. 일반적인 세금계산서는 공급시기에 발급하고, 월합계 세금계산서 등 법정 특례는 다음 달 10일까지 발급할 수 있습니다. 발급한 전자세금계산서는 원칙적으로 발급일의 다음 날까지 국세청에 전송해야 합니다. 사업자 유형과 거래별 예외는 최신 국세청 안내를 확인하세요.', source: '국세청 전자세금계산서 안내', sourceUrl: 'https://www.nts.go.kr/' },
+        { id: 2, title: '부가가치세 신고와 매입세액 공제', category: '부가가치세', summary: '과세기간, 신고자료 대사, 공제 가능한 매입세액을 점검합니다.', content: '일반과세 개인사업자는 통상 1월과 7월에 확정신고를 하며, 법인사업자는 사업 규모와 예정신고 대상 여부에 따라 신고 일정이 달라집니다. 매출 세금계산서·카드매출·현금영수증과 매입 자료를 장부와 대사하세요. 사업과 직접 관련 없는 지출, 비영업용 소형승용차 관련 지출 등 법에서 정한 항목은 매입세액 공제가 제한될 수 있습니다. 간이과세자는 신고 주기와 계산 방식이 다릅니다.', source: '국세청 부가가치세 안내', sourceUrl: 'https://www.nts.go.kr/' },
+        { id: 3, title: '종합소득세 신고와 장부 작성', category: '종합소득세', summary: '개인사업자·프리랜서의 소득 합산과 필요경비 증빙을 안내합니다.', content: '종합소득세는 이자·배당·사업·근로·연금·기타소득 등 과세대상 종합소득을 합산해 신고합니다. 일반적인 신고기간은 다음 해 5월 1일부터 5월 31일까지이며, 성실신고확인 대상자는 법정 요건에 따라 6월 30일까지 신고합니다. 사업자는 복식부기 또는 간편장부 대상 여부를 확인하고, 수입·지출과 관련 증빙을 보관해야 합니다. 신고 유형과 경비율은 업종 및 직전연도 수입금액 등에 따라 달라집니다.', source: '국세청 종합소득세 안내', sourceUrl: 'https://www.nts.go.kr/' },
+        { id: 4, title: '법인세 신고와 결산 준비', category: '법인세', summary: '사업연도 결산, 세무조정, 신고·납부 준비 절차입니다.', content: '내국법인은 각 사업연도 소득을 기준으로 법인세를 신고합니다. 일반적으로 사업연도 종료일이 속하는 달의 말일부터 3개월 이내에 법인세 과세표준과 세액을 신고·납부합니다. 결산 시 매출·매입, 재고, 고정자산, 감가상각, 충당금, 접대비 등 계정별 증빙을 점검하고 회계상 이익과 세법상 소득 차이를 세무조정해야 합니다. 법인 유형과 사업연도에 따른 예외를 확인하세요.', source: '국세청 법인세 안내', sourceUrl: 'https://www.nts.go.kr/' },
+        { id: 5, title: '원천세 신고와 지급명세서', category: '원천세', summary: '급여·사업소득·기타소득 지급 시 원천징수와 제출 의무를 확인합니다.', content: '급여 등 원천징수 대상 소득을 지급하는 사업자는 소득 종류별 규정에 따라 세금을 원천징수하고 신고·납부해야 합니다. 일반적인 원천징수세액의 신고·납부기한은 소득 지급월의 다음 달 10일이며, 반기별 납부 승인을 받은 경우에는 별도 일정이 적용됩니다. 원천세 신고와 별도로 소득 종류에 따른 간이지급명세서·지급명세서 제출기한도 확인해야 합니다.', source: '국세청 원천세 안내', sourceUrl: 'https://www.nts.go.kr/' },
+        { id: 6, title: '수정세금계산서 발급 사유', category: '세금계산서 수정', summary: '계약 해제, 환입, 공급가액 변동, 기재사항 착오를 구분합니다.', content: '이미 발급한 세금계산서에 수정 사유가 발생하면 원본을 임의로 삭제하지 말고 부가가치세법 시행령에서 정한 사유와 작성 방법에 따라 수정세금계산서를 발급해야 합니다. 계약 해제, 재화 환입, 공급가액 증감, 필요적 기재사항 착오 등은 사유별 작성일자와 발급기한이 다를 수 있습니다. 거래 계약서, 반품 내역, 변경 합의서 등 사유를 입증할 자료를 함께 보관하세요.', source: '국세청 전자세금계산서 안내', sourceUrl: 'https://www.nts.go.kr/' },
+        { id: 7, title: '사업자등록 신청·정정·폐업', category: '사업자등록', summary: '사업 시작, 업종·주소 변경, 휴업·폐업 때 필요한 절차입니다.', content: '사업자는 사업 개시 전 또는 사업을 시작한 날부터 법정 기한 내 사업자등록을 신청해야 합니다. 사업장 주소, 상호, 업종 등 등록사항이 바뀌면 정정신고 대상인지 확인하고, 인허가 업종은 관련 허가·등록 요건도 확인해야 합니다. 폐업 시 사업자등록 폐업신고 외에도 부가가치세 등 관련 세금 신고와 잔존재화 처리 여부를 검토해야 합니다.', source: '국세청 사업자등록 안내', sourceUrl: 'https://www.nts.go.kr/' },
+        { id: 8, title: '사업상 필요경비와 적격증빙', category: '경비·증빙', summary: '사업 관련 지출을 구분하고 증빙 누락을 줄이는 실무 방법입니다.', content: '필요경비는 사업과 관련해 발생하고 세법상 인정 요건을 충족해야 합니다. 세금계산서·계산서·신용카드매출전표·현금영수증 등 적격증빙 수취 대상 거래인지 확인하고 계약서, 거래명세서, 이체내역도 함께 관리하세요. 개인적 지출을 사업 비용에 포함하거나 사업 관련성이 불분명한 지출을 계상하면 비용 인정이 제한될 수 있습니다. 증빙 수취 의무와 예외는 거래 유형별로 다릅니다.', source: '국세청 종합소득세·법인세 안내', sourceUrl: 'https://www.nts.go.kr/' },
+        { id: 9, title: '직원 채용과 4대 사회보험', category: '4대 보험', summary: '근로자 취득 신고, 보험 적용 여부, 보수 변경과 상실 신고를 확인합니다.', content: '직원을 채용하면 근로자의 고용 형태와 법정 적용 제외 기준을 확인해 국민연금·건강보험·고용보험·산재보험의 가입 대상 여부를 판단해야 합니다. 자격 취득·상실 신고와 보수월액 변경, 보험료 정산 등은 보험별 절차와 기한이 다를 수 있습니다. 단시간근로자·일용근로자 등은 근로시간과 근로기간 등 구체적 사실관계에 따라 적용이 달라질 수 있으므로 각 공단의 최신 안내를 확인하세요.', source: '4대사회보험 정보연계센터', sourceUrl: 'https://www.4insure.or.kr/' },
+        { id: 10, title: '급여대장과 근로소득 원천징수', category: '급여·근로소득', summary: '급여 구성, 비과세 항목, 간이세액표와 급여명세서 발급을 다룹니다.', content: '급여 계산은 근로계약서와 근태 기록을 바탕으로 기본급·수당·상여 등을 구분해 작성합니다. 비과세 급여는 법정 한도와 요건을 충족하는 경우에만 적용하며, 근로소득 간이세액표에 따라 원천징수한 뒤 다음 달 원천세 신고에 반영합니다. 근로기준법상 임금명세서 교부 의무도 확인하고 급여대장, 이체 내역, 원천세 신고자료가 서로 일치하도록 관리하세요.', source: '국세청 원천세 안내', sourceUrl: 'https://www.nts.go.kr/' },
+        { id: 11, title: '연말정산 소득·세액공제', category: '연말정산', summary: '부양가족, 보험료, 의료비, 교육비, 기부금 등 공제 요건을 확인합니다.', content: '근로소득 연말정산은 총급여와 근로소득공제 등을 반영해 과세표준과 세액을 계산하고, 요건을 충족하는 소득공제·세액공제를 적용해 정산합니다. 부양가족 공제는 소득·나이 등 요건을 확인해야 하며, 의료비·교육비·기부금·주택 관련 항목도 각각 공제 요건과 한도가 있습니다. 간소화 서비스에 조회된 자료라도 자동으로 공제가 확정되는 것은 아니므로 실제 지출 및 공제 요건을 검토하세요.', source: '국세청 연말정산 안내', sourceUrl: 'https://www.nts.go.kr/' },
+        { id: 12, title: '세액공제·감면 적용 전 확인사항', category: '절세·세액공제', summary: '중소기업·창업 관련 감면 등은 적용 요건과 사후관리까지 검토해야 합니다.', content: '세액공제·감면은 업종, 사업장 소재지, 창업 시점, 기업 규모, 고용·투자 내용 등 법정 요건에 따라 적용 여부가 달라집니다. 적용 가능성이 있어 보여도 제외 업종, 최저한세, 중복지원 제한, 감면기간, 고용 유지 등 사후관리 요건을 확인해야 합니다. 신고서에 적용 근거와 계산 내역을 남기고, 관련 증빙을 보관하세요. 제도와 요건은 개정될 수 있으므로 신고 연도 기준 법령을 확인해야 합니다.', source: '국세청 세액감면·공제 안내', sourceUrl: 'https://www.nts.go.kr/' },
+        { id: 13, title: '장부·재무제표와 증빙 보관', category: '장부·재무제표', summary: '매출·매입, 자산·부채, 미수금·미지급금 자료를 결산 전에 대사합니다.', content: '장부에는 거래 사실을 확인할 수 있도록 매출·매입, 계좌 거래, 재고, 고정자산, 미수금·미지급금 등을 기록하고 증빙과 연결해 두는 것이 중요합니다. 손익계산서는 일정 기간의 경영성과를, 재무상태표는 특정 시점의 자산·부채·자본 상태를 보여줍니다. 사업 관련 장부와 증빙은 일반적으로 법정 보존기간을 지켜 보관하며, 이월결손금 공제 등 상황에 따라 더 긴 기간이 적용될 수 있습니다.', source: '국세청 종합소득세 안내', sourceUrl: 'https://www.nts.go.kr/' },
+        { id: 14, title: '지방소득세·주민세 등 지방세', category: '지방세', summary: '국세와 별도로 발생하는 지방세의 신고·납부 경로를 안내합니다.', content: '지방소득세, 주민세, 취득세, 재산세 등은 과세 대상과 신고·납부 방식이 서로 다릅니다. 개인지방소득세는 종합소득세 신고와 연계해 신고하는 경우가 많지만 지방자치단체에 별도로 신고·납부해야 합니다. 부동산 취득·보유, 사업장 운영 등 상황에 따라 다른 지방세가 발생할 수 있으므로 위택스와 관할 지방자치단체의 안내 및 고지서를 확인하세요.', source: '위택스 지방세 안내', sourceUrl: 'https://www.wetax.go.kr/' },
+        { id: 15, title: '양도소득세·상속세·증여세 기초', category: '재산 관련 세금', summary: '자산 이전·매매·상속·증여 시 과세 여부와 신고기한을 확인합니다.', content: '부동산·주식 등 자산을 양도하면 자산 종류와 거래 조건에 따라 양도소득세 및 관련 신고 의무가 발생할 수 있습니다. 상속세는 상속 개시, 증여세는 증여를 받은 사실을 기준으로 과세 여부와 신고기한을 판단하며, 공제·평가 방법은 자산 종류와 가족관계 등 사실관계에 따라 달라집니다. 취득가액·필요경비·계약서·평가자료 등 증빙을 보관하고 거래 전에 국세청 안내나 세무 전문가를 통해 확인하세요.', source: '국세청 양도·상속·증여세 안내', sourceUrl: 'https://www.nts.go.kr/' }
+,
+        { id: 16, title: '간이과세자와 일반과세자 비교', category: '부가가치세', summary: '과세유형별 신고 방식과 매입세액 처리 차이를 이해합니다.', content: '간이과세 적용 여부는 법정 공급대가 기준, 업종, 사업장 요건과 제외 규정 등을 종합해 판단합니다. 간이과세자는 일반과세자와 부가가치세 계산 및 매입세액 공제 방식이 다르며, 세금계산서 발급 가능 여부에도 요건이 있습니다. 매출 규모가 변하거나 사업을 시작·양수하는 경우 과세유형 변경 시점과 신고 의무를 확인하고, 거래처가 세금계산서를 요구하는지 등 사업 특성도 함께 검토하세요.', source: '국세청 간이과세 안내', sourceUrl: 'https://www.nts.go.kr/' },
+        { id: 17, title: '현금영수증 발급 의무와 누락 점검', category: '현금영수증', summary: '현금 거래 기록과 의무발행업종의 발급 기준을 점검합니다.', content: '현금영수증 발급 의무는 사업자 유형과 업종, 거래금액 및 거래 상대방의 요청 여부 등에 따라 달라질 수 있습니다. 의무발행업종은 소비자가 요청하지 않더라도 법정 기준에 해당하면 발급해야 하는 경우가 있으므로 해당 연도 업종 목록과 금액 기준을 확인하세요. 카드매출, 현금영수증, 계좌이체 매출을 매출 장부와 대조하고 발급 누락·취소·중복 내역을 월별로 점검하는 것이 좋습니다.', source: '국세청 현금영수증 안내', sourceUrl: 'https://www.nts.go.kr/' },
+        { id: 18, title: '프리랜서 사업소득 3.3% 원천징수', category: '프리랜서·원천세', summary: '사업소득 지급 시 원천징수와 지급명세서 제출을 구분합니다.', content: '개인에게 인적용역 사업소득을 지급할 때 흔히 소득세와 개인지방소득세를 합해 3.3%를 원천징수하지만, 모든 프리랜서 지급액에 일률적으로 적용되는 것은 아닙니다. 실제 계약관계와 소득 성격을 확인하고 근로소득 또는 기타소득 등 다른 분류에 해당하는지 판단해야 합니다. 원천징수한 세액의 신고·납부와 간이지급명세서·지급명세서 제출은 각각 의무와 기한이 다를 수 있으므로 지급내역을 정확히 관리하세요.', source: '국세청 원천징수 안내', sourceUrl: 'https://www.nts.go.kr/' },
+        { id: 19, title: '사업용 계좌와 개인자금 분리', category: '사업자 장부관리', summary: '사업 거래와 개인 거래를 분리해 장부 오류와 증빙 누락을 줄입니다.', content: '사업용 계좌를 사용하면 매출 입금, 거래처 대금, 급여, 세금 납부 등 사업 관련 흐름을 추적하기 쉬워집니다. 법정 사업용 계좌 신고 의무는 복식부기의무자 등 대상 요건에 따라 달라질 수 있으므로 본인의 의무 여부를 확인하세요. 개인자금이 사업 계좌에 입출금된 경우 거래 성격을 메모하고, 사업비와 개인 소비를 구분해 장부와 통장 내역을 정기적으로 대사하는 것이 중요합니다.', source: '국세청 종합소득세·장부 안내', sourceUrl: 'https://www.nts.go.kr/' },
+        { id: 20, title: '폐업 시 부가가치세와 잔존재화', category: '폐업·정산', summary: '폐업신고 이후 남은 재고·비품과 최종 세금 신고를 확인합니다.', content: '사업을 폐업할 때는 사업자등록 폐업신고만으로 모든 세무 의무가 끝나는 것은 아닙니다. 폐업일이 속한 과세기간의 부가가치세 확정신고 등 법정 신고를 확인하고, 사업에 사용하던 재고자산·비품·차량 등 잔존재화의 과세 여부와 계산 방법을 검토해야 합니다. 미수금·미지급금, 직원 급여 및 퇴직 관련 정산, 원천세와 지급명세서 제출도 함께 점검하고 관련 장부와 증빙을 보관하세요.', source: '국세청 폐업·부가가치세 안내', sourceUrl: 'https://www.nts.go.kr/' },
+        { id: 21, title: '세금 납부기한과 기한 후 신고 대응', category: '신고기한·가산세', summary: '신고기한을 놓쳤을 때 신고와 납부 상태를 나누어 확인합니다.', content: '신고기한을 넘겼다면 신고하지 않은 상태인지, 신고는 했지만 납부하지 않은 상태인지부터 구분해야 합니다. 기한 후 신고, 수정신고, 경정청구는 적용 상황과 요건이 서로 다르며 가산세 감면 가능성도 신고 시점과 사유에 따라 달라질 수 있습니다. 홈택스의 신고 내역과 납부 내역을 확인하고, 미납세액이 있다면 납부 가능 일정과 분납·징수유예 등 적용 가능한 제도를 관할 세무서 또는 공식 안내를 통해 확인하세요.', source: '국세청 신고·납부 안내', sourceUrl: 'https://www.nts.go.kr/' }
       ];
 
       return (
         <div className="space-y-6">
           <div className="border-b pb-4">
             <h2 className="text-xl font-bold text-slate-900">📖 세무 실무 가이드 & 칼럼</h2>
-            <p className="text-xs text-slate-500 mt-1">국세청 고시 및 세법 개정안을 바탕으로 검증된 실무 지식을 제공합니다. (적용 기준일 {cfg.asOf})</p>
+            <p className="text-xs text-slate-500 mt-1">총 21개 주제로 정리한 세무 실무 참고자료입니다. 국세청·위택스·4대사회보험 공식 안내를 바탕으로 핵심 확인사항을 제공합니다. 세부 요건과 신고기한은 거래 유형 및 해당 연도 법령에 따라 달라질 수 있습니다. (적용 기준일 {cfg.asOf})</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {articles.map((art) => (
@@ -3188,6 +2950,7 @@ const [points, setPoints] = useState(0);
                 <h3 className="font-bold text-slate-900 text-sm">{art.title}</h3>
                 <p className="text-xs text-slate-500 leading-relaxed">{art.summary}</p>
                 <div className="p-3 bg-slate-50 rounded-xl text-xs text-slate-600 border border-slate-100">{art.content}</div>
+                <a href={art.sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 hover:text-blue-900 hover:underline">공식 자료 확인: {art.source} <span aria-hidden="true">↗</span></a>
               </div>
             ))}
           </div>
@@ -3209,23 +2972,23 @@ const [points, setPoints] = useState(0);
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="font-semibold text-slate-700 block mb-1">상호명</label>
-              <input type="text" value={data.companyName} onChange={e => setData({...data, companyName: e.target.value})} placeholder="예: (주)텍스원" className="w-full px-3 py-2 border rounded-lg placeholder:text-slate-400 placeholder:opacity-70" />
+              <input type="text" value={data.companyName} onChange={e => setData({...data, companyName: e.target.value})} className="w-full px-3 py-2 border rounded-lg" />
             </div>
             <div>
               <label className="font-semibold text-slate-700 block mb-1">사업자등록번호</label>
-              <input type="text" value={data.bizNumber} onChange={e => setData({...data, bizNumber: e.target.value})} placeholder="예: 123-45-67890" className="w-full px-3 py-2 border rounded-lg font-mono font-bold placeholder:text-slate-400 placeholder:opacity-70" />
+              <input type="text" value={data.bizNumber} onChange={e => setData({...data, bizNumber: e.target.value})} className="w-full px-3 py-2 border rounded-lg font-mono font-bold" />
             </div>
             <div>
               <label className="font-semibold text-slate-700 block mb-1">대표자명</label>
-              <input type="text" value={data.ceoName} onChange={e => setData({...data, ceoName: e.target.value})} placeholder="예: 홍길동" className="w-full px-3 py-2 border rounded-lg placeholder:text-slate-400 placeholder:opacity-70" />
+              <input type="text" value={data.ceoName} onChange={e => setData({...data, ceoName: e.target.value})} className="w-full px-3 py-2 border rounded-lg" />
             </div>
             <div>
               <label className="font-semibold text-slate-700 block mb-1">대표 이메일</label>
-              <input type="email" value={data.email} onChange={e => setData({...data, email: e.target.value})} placeholder="예: tax@example.com" className="w-full px-3 py-2 border rounded-lg font-mono placeholder:text-slate-400 placeholder:opacity-70" />
+              <input type="email" value={data.email} onChange={e => setData({...data, email: e.target.value})} className="w-full px-3 py-2 border rounded-lg font-mono" />
             </div>
             <div className="col-span-2">
               <label className="font-semibold text-slate-700 block mb-1">사업장 주소</label>
-              <input type="text" value={data.address} onChange={e => setData({...data, address: e.target.value})} placeholder="예: 서울특별시 중구 세종대로 00" className="w-full px-3 py-2 border rounded-lg placeholder:text-slate-400 placeholder:opacity-70" />
+              <input type="text" value={data.address} onChange={e => setData({...data, address: e.target.value})} className="w-full px-3 py-2 border rounded-lg" />
             </div>
           </div>
 
@@ -3234,11 +2997,11 @@ const [points, setPoints] = useState(0);
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-[11px] text-slate-600 block mb-1">문의 번호</label>
-                <input type="text" value={data.csPhone} onChange={e => setData({...data, csPhone: e.target.value})} className="w-full px-3 py-2 border rounded-lg bg-white placeholder:text-slate-400 placeholder:opacity-70" placeholder="예: 02-1234-5678" />
+                <input type="text" value={data.csPhone} onChange={e => setData({...data, csPhone: e.target.value})} className="w-full px-3 py-2 border rounded-lg bg-white" placeholder="미정" />
               </div>
               <div>
                 <label className="text-[11px] text-slate-600 block mb-1">운영시간 / 휴무</label>
-                <input type="text" value={data.csHours} onChange={e => setData({...data, csHours: e.target.value})} className="w-full px-3 py-2 border rounded-lg bg-white placeholder:text-slate-400 placeholder:opacity-70" placeholder="예: 평일 09:00~18:00 (주말 휴무)" />
+                <input type="text" value={data.csHours} onChange={e => setData({...data, csHours: e.target.value})} className="w-full px-3 py-2 border rounded-lg bg-white" placeholder="미정" />
               </div>
             </div>
           </div>
@@ -3260,7 +3023,7 @@ const [points, setPoints] = useState(0);
       const [buyerCeo, setBuyerCeo] = useState('김대표');
       const [buyerEmail, setBuyerEmail] = useState('partner@example.com');
       const [itemDesc, setItemDesc] = useState('2026년 시스템 개발 및 유지보수 용역');
-const [supplyAmount, setSupplyAmount] = useState(0);
+      const [supplyAmount, setSupplyAmount] = useState(3000000);
       const [bizStatus, setBizStatus] = useState('');
       const taxAmount = Math.floor(supplyAmount * cfg.einvoice.vatRate);
       const grandTotal = supplyAmount + taxAmount;
@@ -3308,23 +3071,23 @@ const [supplyAmount, setSupplyAmount] = useState(0);
                 </div>
                 <div className="p-3 bg-blue-50/40 rounded-lg space-y-2">
                   <div className="font-bold text-blue-700">공급받는자</div>
-                  <input type="text" value={buyerName} onChange={e => setBuyerName(e.target.value)} className="w-full px-2 py-1 border rounded placeholder:text-slate-400 placeholder:opacity-70" placeholder="예: 거래처 상호명" />
-                  <input type="text" value={buyerBiz} onChange={e => setBuyerBiz(e.target.value)} className="w-full px-2 py-1 border rounded font-mono placeholder:text-slate-400 placeholder:opacity-70" placeholder="예: 123-45-67890" />
+                  <input type="text" value={buyerName} onChange={e => setBuyerName(e.target.value)} className="w-full px-2 py-1 border rounded" placeholder="상호명" />
+                  <input type="text" value={buyerBiz} onChange={e => setBuyerBiz(e.target.value)} className="w-full px-2 py-1 border rounded font-mono" placeholder="등록번호" />
                   <div className="flex items-center gap-2">
                     <button type="button" onClick={checkBizStatus} className="px-2 py-1 border border-blue-300 text-blue-700 rounded bg-white text-[11px] font-semibold">국세청 사업자 상태조회</button>
                     {bizStatus && <span className="text-[11px] text-slate-600 leading-tight">{bizStatus}</span>}
                   </div>
-                  <input type="email" value={buyerEmail} onChange={e => setBuyerEmail(e.target.value)} className="w-full px-2 py-1 border rounded font-mono placeholder:text-slate-400 placeholder:opacity-70" placeholder="예: buyer@example.com" />
+                  <input type="email" value={buyerEmail} onChange={e => setBuyerEmail(e.target.value)} className="w-full px-2 py-1 border rounded font-mono" placeholder="이메일" />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <label className="font-semibold block">품목명 / 공급가액</label>
-                <input type="text" value={itemDesc} onChange={e => setItemDesc(e.target.value)} placeholder="예: 소프트웨어 개발 용역" className="w-full px-3 py-2 border rounded-lg placeholder:text-slate-400 placeholder:opacity-70" />
+                <input type="text" value={itemDesc} onChange={e => setItemDesc(e.target.value)} className="w-full px-3 py-2 border rounded-lg" />
                 <div className="grid grid-cols-2 gap-3 pt-1">
                   <div>
                     <span className="text-slate-500 block mb-1">공급가액(원)</span>
-                    <input type="number" value={supplyAmount === 0 ? '' : supplyAmount} placeholder="예: 3000000" onChange={(e) => setSupplyAmount(e.target.value === '' ? 0 : Number(e.target.value))} className="w-full px-3 py-2 border rounded-lg font-bold placeholder:text-slate-400 placeholder:opacity-70" />
+                    <input type="number" value={supplyAmount} onChange={(e) => setSupplyAmount(Number(e.target.value))} className="w-full px-3 py-2 border rounded-lg font-bold" />
                   </div>
                   <div>
                     <span className="text-slate-500 block mb-1">세액(VAT {pctText(cfg.einvoice.vatRate, 0)})</span>
@@ -3400,43 +3163,5 @@ const [supplyAmount, setSupplyAmount] = useState(0);
       </RatesProvider>
     );
   </script>
-<!-- Code injected by live-server -->
-<script>
-	// <![CDATA[  <-- For SVG support
-	if ('WebSocket' in window) {
-		(function () {
-			function refreshCSS() {
-				var sheets = [].slice.call(document.getElementsByTagName("link"));
-				var head = document.getElementsByTagName("head")[0];
-				for (var i = 0; i < sheets.length; ++i) {
-					var elem = sheets[i];
-					var parent = elem.parentElement || head;
-					parent.removeChild(elem);
-					var rel = elem.rel;
-					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
-						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
-						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
-					}
-					parent.appendChild(elem);
-				}
-			}
-			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
-			var address = protocol + window.location.host + window.location.pathname + '/ws';
-			var socket = new WebSocket(address);
-			socket.onmessage = function (msg) {
-				if (msg.data == 'reload') window.location.reload();
-				else if (msg.data == 'refreshcss') refreshCSS();
-			};
-			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
-				console.log('Live reload enabled.');
-				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
-			}
-		})();
-	}
-	else {
-		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
-	}
-	// ]]>
-</script>
 </body>
 </html>
